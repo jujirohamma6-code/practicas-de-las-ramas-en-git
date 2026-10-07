@@ -7,7 +7,7 @@ body {
 }
 
 .container {
-  max-width: 650px;
+  max-width: 700px;
   margin: 0 auto;
 }
 
@@ -58,6 +58,19 @@ h1 {
   border: 1px solid #333;
 }
 
+.sub-card {
+  border: 1px dashed #555;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.sub-card legend {
+  color: #64b5f6;
+  padding: 0 8px;
+  font-weight: bold;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
@@ -102,8 +115,44 @@ input:focus, .select-style:focus {
 .btn-primary { background: #1976d2; color: white; }
 .btn-primary:hover { background: #1565c0; }
 
+.btn-secondary { background: #0288d1; color: white; margin-bottom: 10px; }
+.btn-secondary:hover { background: #0277bd; }
+
 .btn-success { background: #388e3c; color: white; margin-top: 15px; }
 .btn-success:hover { background: #2e7d32; }
+
+.btn-danger {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* TABLAS */
+.tabla-container {
+  margin-top: 15px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #252525;
+}
+
+th, td {
+  border: 1px solid #444;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background-color: #333;
+  color: #64b5f6;
+}
 
 #mensaje-estado {
   margin-top: 15px;
@@ -114,3 +163,4 @@ input:focus, .select-style:focus {
 }
 
 .exito { background: #1b5e20; color: #a5d6a7; }
+.error { background: #b71c1c; color: #ffcdd2; }

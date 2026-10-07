@@ -20,54 +20,121 @@ tabFacturacion.addEventListener('click', () => cambiarPestana(tabFacturacion, mo
 tabCxp.addEventListener('click', () => cambiarPestana(tabCxp, modCxp));
 
 
-// --- MÓDULO 1: ESTIMADOS ---
+// --- MÓDULO 1: ESTIMADOS CON LISTA DE ÍTEMS ---
+let listaItemsCotizacion = [];
+let cotizacionFinal = null;
+
+const btnAgregarItem = document.getElementById('btn-agregar-item');
+const tablaItemsCotizacion = document.getElementById('tabla-items-cotizacion');
 const formEstimado = document.getElementById('form-estimado');
 const seccionResumen = document.getElementById('seccion-resumen');
 const detalleCotizacion = document.getElementById('detalle-cotizacion');
 const btnConvertir = document.getElementById('btn-convertir');
 const mensajeEstado = document.getElementById('mensaje-estado');
 
-let estimadoActual = null;
+// Agregar ítem individual a la tabla temporal
+btnAgregarItem.addEventListener('click', function() {
+  const productoInput = document.getElementById('producto');
+  const cantidadInput = document.getElementById('cantidad');
+  const precioInput = document.getElementById('precio');
 
+  const producto = productoInput.value.trim();
+  const cantidad = parseInt(cantidadInput.value);
+  const precio = parseFloat(precioInput.value);
+
+  if (!producto || isNaN(cantidad) || isNaN(precio) || cantidad <= 0 || precio <= 0) {
+    mostrarMensaje('Por favor completa los datos del producto correctamente.', 'error');
+    return;
+  }
+
+  const subtotal = cantidad * precio;
+  listaItemsCotizacion.push({ producto, cantidad, precio, subtotal });
+
+  // Limpiar inputs del producto
+  productoInput.value = '';
+  cantidadInput.value = '1';
+  precioInput.value = '';
+
+  renderizarTablaCotizacion();
+  mostrarMensaje('Producto agregado a la cotización.', 'exito');
+});
+
+function renderizarTablaCotizacion() {
+  if (listaItemsCotizacion.length === 0) {
+    tablaItemsCotizacion.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; color: #888;">No hay productos agregados aún.</td>
+      </tr>`;
+    return;
+  }
+
+  tablaItemsCotizacion.innerHTML = listaItemsCotizacion.map((item, index) => `
+    <tr>
+      <td>${item.producto}</td>
+      <td>${item.cantidad}</td>
+      <td>$${item.precio.toFixed(2)}</td>
+      <td>$${item.subtotal.toFixed(2)}</td>
+      <td><button type="button" class="btn-danger" onclick="eliminarItem(${index})">X</button></td>
+    </tr>
+  `).join('');
+}
+
+window.eliminarItem = function(index) {
+  listaItemsCotizacion.splice(index, 1);
+  renderizarTablaCotizacion();
+};
+
+// Generar Cotización Completa
 formEstimado.addEventListener('submit', function(e) {
   e.preventDefault();
 
-  const cliente = document.getElementById('cliente').value;
-  const producto = document.getElementById('producto').value;
-  const cantidad = parseInt(document.getElementById('cantidad').value);
-  const precio = parseFloat(document.getElementById('precio').value);
+  const cliente = document.getElementById('cliente').value.trim();
 
-  const total = cantidad * precio;
+  if (listaItemsCotizacion.length === 0) {
+    mostrarMensaje('Debes agregar al menos un producto a la lista antes de generar la cotización.', 'error');
+    return;
+  }
 
-  estimadoActual = { cliente, producto, cantidad, precio, total };
+  const granTotal = listaItemsCotizacion.reduce((acc, item) => acc + item.subtotal, 0);
+
+  cotizacionFinal = {
+    cliente,
+    items: [...listaItemsCotizacion],
+    total: granTotal
+  };
+
+  let htmlItems = cotizacionFinal.items.map(i => `
+    <li><strong>${i.producto}</strong> (x${i.cantidad}): $${i.subtotal.toFixed(2)}</li>
+  `).join('');
 
   detalleCotizacion.innerHTML = `
-    <p><strong>Cliente:</strong> ${estimadoActual.cliente}</p>
-    <p><strong>Producto:</strong> ${estimadoActual.producto}</p>
-    <p><strong>Cantidad:</strong> ${estimadoActual.cantidad}</p>
-    <p><strong>Precio Unitario:</strong> $${estimadoActual.precio.toFixed(2)}</p>
-    <p><strong>Total Estimado:</strong> <span style="color: #64b5f6; font-size: 1.2em;">$${estimadoActual.total.toFixed(2)}</span></p>
+    <p><strong>Cliente:</strong> ${cotizacionFinal.cliente}</p>
+    <p><strong>Productos Cotizados:</strong></p>
+    <ul>${htmlItems}</ul>
+    <p><strong>Total Estimado:</strong> <span style="color: #64b5f6; font-size: 1.3em; font-weight: bold;">$${cotizacionFinal.total.toFixed(2)}</span></p>
   `;
 
   seccionResumen.style.display = 'block';
-  mensajeEstado.className = '';
-  mensajeEstado.innerHTML = '';
+  mostrarMensaje('Cotización creada exitosamente.', 'exito');
 });
 
+// Convertir a Factura
 btnConvertir.addEventListener('click', function() {
-  if (estimadoActual) {
-    document.getElementById('fac-cliente').value = estimadoActual.cliente;
-    document.getElementById('fac-producto').value = estimadoActual.producto;
-    document.getElementById('fac-cantidad').value = estimadoActual.cantidad;
-    document.getElementById('fac-precio').value = estimadoActual.precio;
+  if (cotizacionFinal) {
+    document.getElementById('fac-cliente').value = cotizacionFinal.cliente;
+
+    const tbodyFactura = document.getElementById('tabla-items-factura');
+    tbodyFactura.innerHTML = cotizacionFinal.items.map(item => `
+      <tr>
+        <td>${item.producto}</td>
+        <td>${item.cantidad}</td>
+        <td>$${item.precio.toFixed(2)}</td>
+        <td>$${item.subtotal.toFixed(2)}</td>
+      </tr>
+    `).join('');
 
     tabFacturacion.click();
-
-    mensajeEstado.className = 'exito';
-    mensajeEstado.innerHTML = `Cotización de ${estimadoActual.cliente} cargada en Facturación.`;
-    
-    seccionResumen.style.display = 'none';
-    formEstimado.reset();
+    mostrarMensaje(`Cotización de ${cotizacionFinal.cliente} transferida a Facturación.`, 'exito');
   }
 });
 
@@ -81,29 +148,36 @@ formFactura.addEventListener('submit', function(e) {
   e.preventDefault();
 
   const cliente = document.getElementById('fac-cliente').value;
-  const producto = document.getElementById('fac-producto').value;
-  const cantidad = parseInt(document.getElementById('fac-cantidad').value);
-  const precio = parseFloat(document.getElementById('fac-precio').value);
   const tipoPago = document.getElementById('fac-tipo-pago').value;
 
-  const subtotal = cantidad * precio;
+  if (!cotizacionFinal || cotizacionFinal.items.length === 0) {
+    mostrarMensaje('No hay productos en la factura. Convierte una cotización primero.', 'error');
+    return;
+  }
+
+  const subtotal = cotizacionFinal.total;
   const iva = subtotal * 0.15;
-  const total = subtotal + iva;
+  const totalConIva = subtotal + iva;
 
   detalleFactura.innerHTML = `
     <p><strong>Cliente:</strong> ${cliente}</p>
-    <p><strong>Producto:</strong> ${producto} (x${cantidad})</p>
     <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
     <p><strong>IVA (15%):</strong> $${iva.toFixed(2)}</p>
-    <p><strong>Total Facturado:</strong> <span style="color: #81c784; font-size: 1.3em; font-weight: bold;">$${total.toFixed(2)}</span></p>
+    <p><strong>Total Facturado:</strong> <span style="color: #81c784; font-size: 1.3em; font-weight: bold;">$${totalConIva.toFixed(2)}</span></p>
     <p><strong>Método de Pago:</strong> ${tipoPago}</p>
     ${tipoPago === 'Crédito' ? '<p style="color: #ffb74d;"><strong>Nota:</strong> Registrado en Cuentas por Cobrar.</p>' : ''}
   `;
 
   seccionFactura.style.display = 'block';
-  mensajeEstado.className = 'exito';
-  mensajeEstado.innerHTML = `Factura emitida con éxito para ${cliente}.`;
+  mostrarMensaje(`Factura emitida con éxito para ${cliente}.`, 'exito');
+
+  // Limpiar cotización activa
+  listaItemsCotizacion = [];
+  cotizacionFinal = null;
+  renderizarTablaCotizacion();
+  formEstimado.reset();
   formFactura.reset();
+  seccionResumen.style.display = 'none';
 });
 
 
@@ -128,7 +202,11 @@ formCxp.addEventListener('submit', function(e) {
   `;
 
   seccionCxp.style.display = 'block';
-  mensajeEstado.className = 'exito';
-  mensajeEstado.innerHTML = `Deuda con ${proveedor} registrada en Cuentas por Pagar.`;
+  mostrarMensaje(`Deuda con ${proveedor} registrada en Cuentas por Pagar.`, 'exito');
   formCxp.reset();
 });
+
+function mostrarMensaje(texto, tipo) {
+  mensajeEstado.className = tipo;
+  mensajeEstado.innerHTML = texto;
+}

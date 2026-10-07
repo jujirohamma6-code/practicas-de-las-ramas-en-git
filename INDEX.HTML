@@ -27,28 +27,55 @@
             <label>Cliente:</label>
             <input type="text" id="cliente" placeholder="Nombre del cliente" required>
           </div>
-          <div class="form-group">
-            <label>Producto / Servicio:</label>
-            <input type="text" id="producto" placeholder="Descripción del producto" required>
-          </div>
-          <div class="form-row">
+
+          <fieldset class="sub-card">
+            <legend>Agregar Artículo a la Cotización</legend>
             <div class="form-group">
-              <label>Cantidad:</label>
-              <input type="number" id="cantidad" min="1" value="1" required>
+              <label>Producto / Servicio:</label>
+              <input type="text" id="producto" placeholder="Ej. Figura Miku, Figura Rem">
             </div>
-            <div class="form-group">
-              <label>Precio Unitario ($):</label>
-              <input type="number" id="precio" step="0.01" placeholder="0.00" required>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Cantidad:</label>
+                <input type="number" id="cantidad" min="1" value="1">
+              </div>
+              <div class="form-group">
+                <label>Precio Unitario ($):</label>
+                <input type="number" id="precio" step="0.01" placeholder="0.00">
+              </div>
             </div>
+            <button type="button" id="btn-agregar-item" class="btn btn-secondary">+ Agregar Ítem a la Lista</button>
+          </fieldset>
+
+          <!-- TABLA DE ÍTEMS DE LA COTIZACIÓN -->
+          <div class="tabla-container">
+            <h3>Lista de Ítems en Cotización</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cant.</th>
+                  <th>Precio U.</th>
+                  <th>Total</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-items-cotizacion">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #888;">No hay productos agregados aún.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <button type="submit" class="btn btn-primary">Generar Cotización</button>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Generar Cotización Completa</button>
         </form>
       </section>
 
       <section class="card" id="seccion-resumen" style="display: none;">
-        <h2>Resumen de Cotización</h2>
+        <h2>Resumen de Cotización Final</h2>
         <div id="detalle-cotizacion"></div>
-        <button id="btn-convertir" class="btn btn-success">Convertir Estimado a Factura</button>
+        <button id="btn-convertir" class="btn btn-success">Convertir Cotización a Factura</button>
       </section>
     </div>
 
@@ -61,21 +88,27 @@
             <label>Cliente:</label>
             <input type="text" id="fac-cliente" placeholder="Nombre del cliente" required>
           </div>
-          <div class="form-group">
-            <label>Producto / Servicio:</label>
-            <input type="text" id="fac-producto" placeholder="Descripción del producto" required>
+
+          <div class="tabla-container">
+            <h3>Detalle de Factura</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cant.</th>
+                  <th>Precio U.</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-items-factura">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: #888;">Carga una cotización o agrega ítems.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Cantidad:</label>
-              <input type="number" id="fac-cantidad" min="1" value="1" required>
-            </div>
-            <div class="form-group">
-              <label>Precio Unitario ($):</label>
-              <input type="number" id="fac-precio" step="0.01" placeholder="0.00" required>
-            </div>
-          </div>
-          <div class="form-group">
+
+          <div class="form-group" style="margin-top: 15px;">
             <label>Tipo de Pago:</label>
             <select id="fac-tipo-pago" class="select-style">
               <option value="Contado">Contado</option>
@@ -103,7 +136,7 @@
           </div>
           <div class="form-group">
             <label>Concepto / Servicio:</label>
-            <input type="text" id="cxp-concepto" placeholder="Ej. Compra mercancía, Factura Luz" required>
+            <input type="text" id="cxp-concepto" placeholder="Ej. Compra de figuras al por mayor" required>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -129,6 +162,7 @@
     <div id="mensaje-estado"></div>
   </div>
 
+  <!-- Asegúrate de poner aquí el nombre EXACTO de tu archivo .js -->
   <script src="ja.js"></script>
 </body>
 </html>
