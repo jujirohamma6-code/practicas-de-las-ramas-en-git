@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Contable - Prácticas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>Sistema Contable - Prácticas</h1>
+
+    <!-- NAVEGACIÓN ENTRE MÓDULOS -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="tab-estimados">1. Estimados</button>
+      <button class="tab-btn" id="tab-facturacion">2. Facturación</button>
+      <button class="tab-btn" id="tab-cxp">3. Cuentas por Pagar</button>
+    </div>
+
+    <!-- MÓDULO 1: ESTIMADOS -->
+    <div id="modulo-estimados" class="modulo-contenido active">
+      <section class="card">
+        <h2>Nueva Cotización / Estimado</h2>
+        <form id="form-estimado">
+          <div class="form-group">
+            <label>Cliente:</label>
+            <input type="text" id="cliente" placeholder="Nombre del cliente" required>
+          </div>
+          <div class="form-group">
+            <label>Producto / Servicio:</label>
+            <input type="text" id="producto" placeholder="Descripción del producto" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cantidad:</label>
+              <input type="number" id="cantidad" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+              <label>Precio Unitario ($):</label>
+              <input type="number" id="precio" step="0.01" placeholder="0.00" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Generar Cotización</button>
+        </form>
+      </section>
+
+      <section class="card" id="seccion-resumen" style="display: none;">
+        <h2>Resumen de Cotización</h2>
+        <div id="detalle-cotizacion"></div>
+        <button id="btn-convertir" class="btn btn-success">Convertir Estimado a Factura</button>
+      </section>
+    </div>
+
+    <!-- MÓDULO 2: FACTURACIÓN -->
+    <div id="modulo-facturacion" class="modulo-contenido">
+      <section class="card">
+        <h2>Nueva Factura de Venta</h2>
+        <form id="form-factura">
+          <div class="form-group">
+            <label>Cliente:</label>
+            <input type="text" id="fac-cliente" placeholder="Nombre del cliente" required>
+          </div>
+          <div class="form-group">
+            <label>Producto / Servicio:</label>
+            <input type="text" id="fac-producto" placeholder="Descripción del producto" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cantidad:</label>
+              <input type="number" id="fac-cantidad" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+              <label>Precio Unitario ($):</label>
+              <input type="number" id="fac-precio" step="0.01" placeholder="0.00" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Pago:</label>
+            <select id="fac-tipo-pago" class="select-style">
+              <option value="Contado">Contado</option>
+              <option value="Crédito">Crédito (A Cuentas por Cobrar)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Emitir Factura</button>
+        </form>
+      </section>
+
+      <section class="card" id="seccion-factura-generada" style="display: none;">
+        <h2>Factura Emitida</h2>
+        <div id="detalle-factura"></div>
+      </section>
+    </div>
+
+    <!-- MÓDULO 3: CUENTAS POR PAGAR -->
+    <div id="modulo-cxp" class="modulo-contenido">
+      <section class="card">
+        <h2>Registrar Cuenta por Pagar (Proveedor)</h2>
+        <form id="form-cxp">
+          <div class="form-group">
+            <label>Proveedor:</label>
+            <input type="text" id="cxp-proveedor" placeholder="Nombre del proveedor" required>
+          </div>
+          <div class="form-group">
+            <label>Concepto / Servicio:</label>
+            <input type="text" id="cxp-concepto" placeholder="Ej. Compra mercancía, Factura Luz" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto Total ($):</label>
+              <input type="number" id="cxp-monto" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label>Fecha Vencimiento:</label>
+              <input type="date" id="cxp-vencimiento" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Registrar Deuda</button>
+        </form>
+      </section>
+
+      <section class="card" id="seccion-cxp-generada" style="display: none;">
+        <h2>Registro de Cuenta Pendiente</h2>
+        <div id="detalle-cxp"></div>
+      </section>
+    </div>
+
+    <!-- MENSAJES DE ESTADO -->
+    <div id="mensaje-estado"></div>
+  </div>
+
+  <script src="ja.js"></script>
+</body>
+</html>
