@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Módulo Parámetros de Mónica 9</title>
+<style>
+  :root {
+    --bg: #121212;
+    --bg-soft: #1c1c1c;
+    --panel: #232323;
+    --panel-2: #2b2b2b;
+    --border: #3a3a3a;
+    --text: #e6e6e6;
+    --text-muted: #a9a9a9;
+    --accent: #4fa3ff;
+    --accent-soft: rgba(79, 163, 255, 0.14);
+    --warn: #ffc857;
+    --radius: 14px;
+    --shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+  }
+
+  header.app-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, #1f1f1f, #171717);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .brand p {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .badge {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 380px) 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .card__head {
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card__head .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+    flex-shrink: 0;
+  }
+
+  .card__head h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .card__body {
+    padding: 18px;
+  }
+
+  /* Panel explicativo */
+  .guide-section + .guide-section {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .guide-section h3 {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+    color: var(--accent);
+    letter-spacing: 0.2px;
+  }
+
+  .guide-section p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .steps li {
+    display: flex;
+    gap: 12px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .steps .num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    margin-top: 2px;
+  }
+
+  .steps p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .steps strong { color: #fff; }
+
+  .note {
+    margin-top: 20px;
+    background: rgba(255, 200, 87, 0.09);
+    border: 1px solid rgba(255, 200, 87, 0.45);
+    border-left: 4px solid var(--warn);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: #f3e3bd;
+  }
+
+  .note strong { color: var(--warn); }
+
+  /* Diagrama */
+  .diagram-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 18px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend i {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+    border: 1px solid var(--border);
+  }
+
+  .l-start { background: #2f6feb; }
+  .l-dec { background: #8957e5; }
+  .l-step { background: #2da44e; }
+  .l-end { background: #bf8700; }
+
+  .diagram-scroll {
+    padding: 18px;
+    overflow: auto;
+    max-height: calc(100vh - 220px);
+    min-height: 420px;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(79,163,255,0.07), transparent 45%),
+      var(--panel);
+  }
+
+  #diagram {
+    display: flex;
+    justify-content: center;
+    min-width: 320px;
+  }
+
+  #diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .loading {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  footer.page-foot {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .diagram-scroll {
+      max-height: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .page { padding: 16px 12px 32px; }
+    .card__body { padding: 14px; }
+    .diagram-scroll { padding: 12px; }
+    .brand h1 { font-size: 1.05rem; }
+    header.app-bar { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="app-bar">
+    <div class="brand">
+      <div class="brand-mark">M9</div>
+      <div>
+        <h1>Módulo Parámetros de Mónica 9</h1>
+        <p>Prototipo de navegación y configuración global</p>
+      </div>
+    </div>
+    <span class="badge">Tema oscuro · Responsivo</span>
+  </header>
+
+  <div class="layout">
+
+    <!-- ============ 1. GUÍA DE USUARIO ============ -->
+    <aside class="card" aria-label="Guía de usuario">
+      <div class="card__head">
+        <span class="dot"></span>
+        <h2>Guía de Usuario - Módulo Parámetros</h2>
+      </div>
+      <div class="card__body">
+
+        <section class="guide-section">
+          <h3>¿Qué hace este módulo?</h3>
+          <p>
+            Es el <strong>centro de configuración global</strong> donde se gestionan los
+            datos de la empresa, accesos, tablas de impuestos y mantenimientos.
+            Desde aquí se definen los valores que utilizarán el resto de los módulos
+            de Mónica 9.
+          </p>
+        </section>
+
+        <section class="guide-section">
+          <h3>¿Cómo interactuar con el diagrama?</h3>
+          <ol class="steps">
+            <li>
+              <span class="num">1</span>
+              <p>Sigue el flujo desde <strong>"Pantalla principal módulos"</strong> hasta el rombo de decisión.</p>
+            </li>
+            <li>
+              <span class="num">2</span>
+              <p>Selecciona la columna de ajuste que deseas configurar: <strong>Generales</strong>, <strong>Acceso</strong>, <strong>Archivos históricos</strong> o <strong>Respaldar-restaurar</strong>.</p>
+            </li>
+            <li>
+              <span class="num">3</span>
+              <p>Realiza los cambios necesarios en las subventanas y finaliza en <strong>"Ejecutar configuración guardada"</strong>.</p>
+            </li>
+          </ol>
+        </section>
+
+        <div class="note">
+          <strong>Nota aclaratoria:</strong> Este diagrama muestra la ruta de
+          navegación; no procesa datos operativos ni facturación.
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ============ 2. DIAGRAMA DE FLUJO ============ -->
+    <main class="card" aria-label="Diagrama de flujo">
+      <div class="card__head">
+        <span class="dot"></span>
+        <h2>Diagrama de Flujo · Configuración</h2>
+      </div>
+
+      <div class="diagram-toolbar">
+        <div class="legend">
+          <span><i class="l-start"></i> Inicio / módulos</span>
+          <span><i class="l-dec"></i> Decisión</span>
+          <span><i class="l-step"></i> Subventana</span>
+          <span><i class="l-end"></i> Fin</span>
+        </div>
+        <span>Mermaid.js · 4 columnas de ajuste</span>
+      </div>
+
+      <div class="diagram-scroll">
+        <div id="diagram"><p class="loading">Cargando diagrama…</p></div>
+      </div>
+    </main>
+
+  </div>
+
+  <footer class="page-foot">
+    Mónica 9 · Prototipo de interfaz del Módulo Parámetros · Documento no operativo
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  const graphDefinition = `flowchart TD
+    A[Pantalla principal módulos] --> B[seleccionar modulo parametros]
+    B --> C{menú de opciones<br>seleccionar una configuración}
+
+    %% Columna 1
+    C --> D1["Generales<br>datos de la empresa<br>(nombre, logo, moneda)"]
+    D1 --> D2["Tablas / actividades<br>(tabla de impuesto IVA, ciudades)"]
+    D2 --> D3["Otra Empresa<br>crear, seleccionar base de datos"]
+
+    %% Columna 2
+    C --> E1["acceso<br>usuarios, clave, permisos"]
+    E1 --> E2["paramet auxiliares<br>otros ajustes del sistema"]
+    E2 --> E3["Chequear archivo<br>verificación de datos"]
+
+    %% Columna 3
+    C --> F1["Archivos históricos<br>gestión de registros antiguos"]
+    F1 --> F2["Reportes<br>configurar impresión, encabezados"]
+    F2 --> F3["Puntos de venta<br>configurar terminales y cajas"]
+
+    %% Columna 4
+    C --> G1["Respaldar-restaurar<br>copias de seguridad"]
+    G1 --> G2["Versión previa<br>importar de monica"]
+    G2 --> G3["salir<br>(regresar a módulos)"]
+
+    %% Salidas
+    D3 & E3 & F3 --> H[ejecutar configuración guardada]
+    H --> I([Fin / regresar al menú principal])
+    G3 --> I`;
+
+  function renderDiagram() {
+    try {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "dark",
+        securityLevel: "loose",
+        flowchart: {
+          curve: "basis",
+          htmlLabels: true,
+          nodeSpacing: 45,
+          rankSpacing: 55,
+          padding: 12
+        },
+        themeVariables: {
+          background: "#121212",
+          primaryColor: "#2b2b2b",
+          primaryTextColor: "#e6e6e6",
+          primaryBorderColor: "#4fa3ff",
+          lineColor: "#8a8a8a",
+          secondaryColor: "#232323",
+          tertiaryColor: "#1c1c1c",
+          fontFamily: "Segoe UI, Roboto, Helvetica, Arial, sans-serif",
+          fontSize: "14px",
+          clusterBkg: "#1a1a1a",
+          clusterBorder: "#3a3a3a",
+          edgeLabelBackground: "#232323"
+        }
+      });
+
+      mermaid.render("monicagraph", graphDefinition).then(({ svg }) => {
+        document.getElementById("diagram").innerHTML = svg;
+      }).catch((err) => {
+        document.getElementById("diagram").innerHTML =
+          '<p class="loading">No se pudo renderizar el diagrama: ' + err.message + "</p>";
+      });
+    } catch (e) {
+      document.getElementById("diagram").innerHTML =
+        '<p class="loading">Error al inicializar Mermaid: ' + e.message + "</p>";
+    }
+  }
+
+  if (window.mermaid) {
+    renderDiagram();
+  } else {
+    window.addEventListener("load", renderDiagram);
+  }
+</script>
+</body>
+</html>
