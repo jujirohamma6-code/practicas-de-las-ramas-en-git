@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mónica · Gestión — Contabilidad, Cuentas corrientes y Terceros (demo)</title>
+<style>
+  :root{
+    --primary:#1f6fb2; --primary-dark:#17538a; --primary-light:#e8f1f9;
+    --topbar:#16324f; --topbar-2:#1d4266;
+    --bg:#eef1f5; --card:#ffffff; --border:#d8dee7; --border-soft:#e7ebf1;
+    --text:#24313f; --muted:#6b7a8c;
+    --green:#1e8e5a; --green-bg:#e6f5ee;
+    --red:#c0392b; --red-bg:#fdecea;
+    --amber:#b7791f; --amber-bg:#fdf3e3;
+    --radius:6px;
+    --shadow:0 1px 2px rgba(22,50,79,.08),0 1px 6px rgba(22,50,79,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;
+    font-size:13.5px;color:var(--text);background:var(--bg);display:flex;flex-direction:column}
+  .topbar{background:linear-gradient(180deg,var(--topbar-2),var(--topbar));color:#fff;display:flex;
+    align-items:center;gap:18px;padding:0 16px;height:52px;flex:0 0 auto;
+    box-shadow:0 2px 6px rgba(0,0,0,.18);z-index:30}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600}
+  .brand .logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#41a0e0,#1f6fb2);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff}
+  .brand .name{font-size:15px}
+  .brand .name small{display:block;font-size:10px;font-weight:400;color:#a9c2da;letter-spacing:.6px;text-transform:uppercase}
+  .topnav{display:flex;gap:2px;margin-left:8px}
+  .topnav button{background:transparent;border:0;color:#cfe0ef;font:inherit;font-size:13px;
+    padding:8px 12px;border-radius:5px;cursor:pointer}
+  .topnav button:hover{background:rgba(255,255,255,.10);color:#fff}
+  .topnav button.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+  .topbar .spacer{flex:1}
+  .empresa{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#d6e5f3;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:5px 10px;border-radius:5px}
+  .empresa b{color:#fff;font-weight:600}
+  .user{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .avatar{width:28px;height:28px;border-radius:50%;background:#41a0e0;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:12px;color:#fff}
+  .layout{flex:1;display:flex;min-height:0}
+  .sidebar{width:222px;flex:0 0 auto;background:#fbfcfe;border-right:1px solid var(--border);
+    padding:14px 10px;overflow-y:auto}
+  .side-group{margin-bottom:16px}
+  .side-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    font-weight:700;padding:0 8px 6px}
+  .side-item{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;font:inherit;
+    color:var(--text);padding:8px 9px;border-radius:var(--radius);cursor:pointer;text-align:left;font-size:13px}
+  .side-item svg{width:16px;height:16px;flex:0 0 auto;stroke:var(--muted);fill:none;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
+  .side-item:hover{background:#eef3f8}
+  .side-item.active{background:var(--primary-light);color:var(--primary-dark);font-weight:600}
+  .side-item.active svg{stroke:var(--primary)}
+  .side-item .count{margin-left:auto;font-size:11px;background:#e3e9f1;color:var(--muted);
+    padding:1px 7px;border-radius:999px;font-weight:600}
+  .side-item.active .count{background:#cfe2f3;color:var(--primary-dark)}
+  .side-note{margin-top:10px;padding:10px;border:1px dashed var(--border);border-radius:var(--radius);
+    font-size:11.5px;color:var(--muted);line-height:1.5;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:16px 18px 28px;min-width:0}
+  .view-head{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .view-head h1{margin:0;font-size:19px;font-weight:650;color:var(--topbar)}
+  .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:3px}
+  .breadcrumb b{color:var(--primary-dark);font-weight:600}
+  .view-head .actions{margin-left:auto;display:flex;gap:8px}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;
+    color:var(--text);font:inherit;font-size:12.5px;padding:7px 12px;border-radius:var(--radius);
+    cursor:pointer;box-shadow:0 1px 1px rgba(22,50,79,.04)}
+  .btn:hover{border-color:#bfc9d6;background:#f8fafc}
+  .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+  .btn.primary:hover{background:var(--primary-dark);border-color:var(--primary-dark)}
+  .btn.ghost{background:transparent;box-shadow:none}
+  .subtabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}
+  .subtab{border:0;background:transparent;font:inherit;font-size:13px;color:var(--muted);
+    padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .subtab:hover{color:var(--text)}
+  .subtab.active{color:var(--primary-dark);font-weight:650;border-bottom-color:var(--primary)}
+  .grid{display:grid;gap:14px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card .card-head{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border-soft)}
+  .card .card-head h2{margin:0;font-size:13.5px;font-weight:650;color:var(--topbar)}
+  .card .card-head .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .card .card-body{padding:14px}
+  .card .card-body.flush{padding:0}
+  .kpi{padding:14px}
+  .kpi .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:650}
+  .kpi .value{font-size:23px;font-weight:700;margin:6px 0 4px;color:var(--topbar);font-variant-numeric:tabular-nums}
+  .kpi .delta{font-size:11.5px;color:var(--muted)}
+  .kpi .delta .up{color:var(--green);font-weight:650}
+  .kpi .delta .down{color:var(--red);font-weight:650}
+  .kpi.accent{border-left:3px solid var(--primary)}
+  .kpi.green{border-left:3px solid var(--green)}
+  .kpi.red{border-left:3px solid var(--red)}
+  .kpi.amber{border-left:3px solid var(--amber)}
+  .toolbar{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-soft);flex-wrap:wrap}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:var(--radius);
+    background:#fff;padding:5px 9px;min-width:230px}
+  .search input{border:0;outline:0;font:inherit;font-size:12.5px;width:100%;background:transparent}
+  .search svg{width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2}
+  .toolbar .sep{width:1px;height:22px;background:var(--border)}
+  .toolbar .info{font-size:12px;color:var(--muted);margin-left:auto}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{position:sticky;top:0;background:#f6f8fb;color:#5a6a7d;font-size:11px;text-transform:uppercase;
+    letter-spacing:.5px;font-weight:700;text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);
+    white-space:nowrap;z-index:2}
+  tbody td{padding:8px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+  tbody tr:hover{background:#f7fafd}
+  tbody tr.selected{background:var(--primary-light);box-shadow:inset 3px 0 0 var(--primary)}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tfoot td{padding:9px 12px;background:#f6f8fb;font-weight:700;border-top:2px solid var(--border);
+    font-variant-numeric:tabular-nums}
+  .clickable tbody tr{cursor:pointer}
+  .code{font-family:Consolas,"Courier New",monospace;color:var(--primary-dark);font-size:12.5px}
+  .muted{color:var(--muted)}
+  .positive{color:var(--green)}
+  .negative{color:var(--red)}
+  .chip{display:inline-block;font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .chip.ok{background:var(--green-bg);color:var(--green)}
+  .chip.warn{background:var(--amber-bg);color:var(--amber)}
+  .chip.bad{background:var(--red-bg);color:var(--red)}
+  .chip.info{background:var(--primary-light);color:var(--primary-dark)}
+  .chip.gray{background:#eceff3;color:var(--muted)}
+  .split{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;align-items:start}
+  @media (max-width:1100px){.split{grid-template-columns:1fr}}
+  .cc-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;border-bottom:1px solid var(--border-soft)}
+  .cc-summary .box{background:#f8fafc;border:1px solid var(--border-soft);border-radius:var(--radius);padding:9px 11px}
+  .cc-summary .box .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:650}
+  .cc-summary .box .v{font-size:16px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+  .empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12.5px}
+  .aging{padding:6px 14px 14px}
+  .aging .row{display:grid;grid-template-columns:110px 1fr 96px;gap:10px;align-items:center;padding:7px 0}
+  .aging .tramo{font-size:12.5px}
+  .aging .bar{height:14px;background:#eef1f5;border-radius:3px;overflow:hidden}
+  .aging .bar i{display:block;height:100%;border-radius:3px}
+  .aging .amt{text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums;font-weight:600}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);padding:0 14px 12px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+  .form-grid .full{grid-column:1 / -1}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+    font-weight:650;margin-bottom:4px}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius);
+    font:inherit;font-size:13px;padding:7px 9px;background:#fff;color:var(--text)}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid rgba(31,111,178,.25);border-color:var(--primary)}
+  .field input[readonly]{background:#f5f7fa;color:#4a5a6b}
+  .ficha-actions{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border-soft)}
+  .pyg-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border-soft);font-size:13px}
+  .pyg-row.total{border-bottom:0;border-top:2px solid var(--border);font-weight:700;font-size:14px;padding-top:10px;margin-top:4px}
+  .pyg-row .v{font-variant-numeric:tabular-nums}
+  .modal-back{position:fixed;inset:0;background:rgba(15,30,48,.45);display:none;align-items:flex-start;
+    justify-content:center;padding:60px 16px 16px;z-index:60}
+  .modal-back.open{display:flex}
+  .modal{background:#fff;border-radius:8px;width:100%;max-width:560px;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:pop .16s ease-out}
+  @keyframes pop{from{transform:translateY(-8px);opacity:.4}to{transform:none;opacity:1}}
+  .modal header{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);
+    font-weight:650;color:var(--topbar);font-size:14.5px}
+  .modal header button{margin-left:auto;border:0;background:transparent;font-size:18px;cursor:pointer;color:var(--muted);line-height:1}
+  .modal .modal-body{padding:16px;max-height:60vh;overflow-y:auto}
+  .modal footer{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border);background:#f8fafc;border-radius:0 0 8px 8px}
+  .form-error{color:var(--red);font-size:12px;margin-top:8px;display:none}
+  #toast{position:fixed;right:18px;bottom:54px;background:var(--topbar);color:#fff;padding:11px 16px;
+    border-radius:6px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:0;transform:translateY(8px);
+    pointer-events:none;transition:.25s;z-index:70}
+  #toast.show{opacity:1;transform:none}
+  .statusbar{flex:0 0 auto;background:#f8fafc;border-top:1px solid var(--border);display:flex;align-items:center;
+    gap:18px;padding:6px 14px;font-size:11.5px;color:var(--muted)}
+  .statusbar .ok-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px}
+  .statusbar .spacer{flex:1}
+  .view{display:none}
+  .view.active{display:block}
+  @media (max-width:860px){
+    .sidebar{display:none}.topnav{display:none}
+    .form-grid{grid-template-columns:1fr}.cc-summary{grid-template-columns:1fr}
+  }
+  @media print{.topbar,.sidebar,.statusbar,.view-head .actions,.toolbar{display:none}
+    body{background:#fff}.content{padding:0}}
+</style>
+</head>
+<body>
+<!-- ================= TOPBAR ================= -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">M</div>
+    <div class="name">Mónica · Gestión<small>ERP demo</small></div>
+  </div>
+  <nav class="topnav" id="topnav">
+    <button class="active" data-view="panel">Panel</button>
+    <button data-view="contabilidad">Contabilidad</button>
+    <button data-view="cuentas">Cuentas corrientes</button>
+    <button data-view="terceros">Clientes / Proveedores</button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="empresa">Empresa: <b>Comercial La Vega, S.L.</b> · Ejercicio <b>2026</b></div>
+  <div class="user">
+    <div class="avatar">AM</div>
+    <span>A. Martínez</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="side-group">
+      <div class="side-title">Principal</div>
+      <button class="side-item active" data-view="panel">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Panel principal
+      </button>
+    </div>
+
+    <div class="side-group">
+      <div class="side-title">Contabilidad</div>
+      <button class="side-item" data-view="contabilidad" data-sub="diario">
+        <svg viewBox="0 0 24 24"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h13"/></svg>
+        Libro diario <span class="count">46</span>
+      </button>
+      <button class="side-item" data-view="contabilidad" data-sub="plan">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Plan contable
+      </button>
+      <button class="side-item" data-view="contabilidad" data-sub="balances">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5"/><path d="M3 21h18"/></svg>
+        Balances y PyG
+      </button>
+    </div>
+
+    <div class="side-group">
+      <div class="side-title">Cuentas corrientes</div>
+      <button class="side-item" data-view="cuentas">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Movimientos <span class="count">14</span>
+      </button>
+      <button class="side-item" data-view="cuentas" data-focus="aging">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        Antigüedad de saldos
+      </button>
+    </div>
+
+    <div class="side-group">
+      <div class="side-title">Terceros</div>
+      <button class="side-item" data-view="terceros" data-tab="clientes">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        Clientes <span class="count">8</span>
+      </button>
+      <button class="side-item" data-view="terceros" data-tab="proveedores">
+        <svg viewBox="0 0 24 24"><path d="M1 3h13v13H1z"/><path d="M14 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="17.5" cy="18.5" r="2"/></svg>
+        Proveedores <span class="count">6</span>
+      </button>
+    </div>
+
+    <div class="side-note">
+      <b>Demo interactiva.</b> Los datos son ficticios. Pulsa una fila para ver el detalle, o «+ Nuevo» para añadir registros.
+    </div>
+  </aside>
+
+  <!-- ================= CONTENIDO ================= -->
+  <main class="content">
+    <!-- ---------- PANEL ---------- -->
+    <section class="view active" id="view-panel">
+      <div class="view-head">
+        <div>
+          <div class="breadcrumb">Mónica · Gestión / <b>Panel principal</b></div>
+          <h1>Panel principal</h1>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+          <button class="btn primary" data-modal="asiento">+ Nuevo asiento</button>
+        </div>
+      </div>
+
+      <div class="grid kpis">
+        <div class="card kpi accent">
+          <div class="label">Facturado del mes</div>
+          <div class="value">128.450,00 €</div>
+          <div class="delta"><span class="up">▲ 8,4 %</span> vs. septiembre</div>
+        </div>
+        <div class="card kpi green">
+          <div class="label">Cobrado (mes)</div>
+          <div class="value">96.320,00 €</div>
+          <div class="delta"><span class="up">▲ 3,1 %</span> · 32 recibos</div>
+        </div>
+        <div class="card kpi red">
+          <div class="label">Pendiente de cobro</div>
+          <div class="value">47.815,00 €</div>
+          <div class="delta"><span class="down">12.300,00 €</span> vencidos</div>
+        </div>
+        <div class="card kpi amber">
+          <div class="label">Resultado del ejercicio</div>
+          <div class="value">31.470,00 €</div>
+          <div class="delta">Margen <b>16,9 %</b> sobre ingresos</div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <div class="card-head">
+            <h2>Últimos asientos contabilizados</h2>
+            <div class="right"><button class="btn ghost" data-view="contabilidad" data-sub="diario">Ver libro diario →</button></div>
+          </div>
+          <div class="card-body flush table-wrap">
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>Asiento</th><th>Concepto</th><th class="num">Debe</th><th class="num">Haber</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>07/10/2026</td><td class="code">2026-0046</td><td>Pago proveedor Almacenes Sur, S.L.</td><td class="num">1.815,00</td><td class="num">—</td></tr>
+                <tr><td>06/10/2026</td><td class="code">2026-0045</td><td>Arrendamiento local — Alquiler octubre</td><td class="num">980,00</td><td class="num">—</td></tr>
+                <tr><td>06/10/2026</td><td class="code">2026-0044</td><td>Nómina equipo — octubre</td><td class="num">4.200,00</td><td class="num">—</td></tr>
+                <tr><td>05/10/2026</td><td class="code">2026-0043</td><td>Cobro recibo REC-0091 — Clínicas San Gabriel</td><td class="num">7.320,50</td><td class="num">—</td></tr>
+                <tr><td>03/10/2026</td><td class="code">2026-0042</td><td>Venta mercancía — FAC-2026-0193</td><td class="num">—</td><td class="num">7.320,50</td></tr>
+                <tr><td>02/10/2026</td><td class="code">2026-0041</td><td>Compra mercancía — FAC-2026-0912</td><td class="num">3.630,00</td><td class="num">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Vencimientos próximos</h2></div>
+          <div class="card-body flush table-wrap">
+            <table>
+              <thead><tr><th>Vence</th><th>Tercero</th><th class="num">Importe</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>08/10/2026</td><td>Textil Aurora, S.A.</td><td class="num">4.150,00</td><td><span class="chip warn">Mañana</span></td></tr>
+                <tr><td>10/10/2026</td><td>Ferretería Duero</td><td class="num">1.270,50</td><td><span class="chip info">En plazo</span></td></tr>
+                <tr><td>15/10/2026</td><td>Papelera Ibérica, S.L.</td><td class="num">3.630,00</td><td><span class="chip info">En plazo</span></td></tr>
+                <tr><td>30/09/2026</td><td>Panadería El Molino</td><td class="num">845,00</td><td><span class="chip bad">Vencido</span></td></tr>
+                <tr><td>25/09/2026</td><td>Gráficas Limay, S.L.</td><td class="num">7.305,00</td><td><span class="chip bad">Vencido</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="legend" style="padding-top:12px">
+            <span><i style="background:var(--red)"></i> Vencido 12.300,00 €</span>
+            <span><i style="background:var(--amber)"></i> Por vencer 9.050,50 €</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ---------- CONTABILIDAD ---------- -->
+    <section class="view" id="view-contabilidad">
+      <div class="view-head">
+        <div>
+          <div class="breadcrumb">Mónica · Gestión / Contabilidad / <b id="cta-crumb">Libro diario</b></div>
+          <h1 id="cta-title">Libro diario</h1>
+        </div>
+        <div class="actions">
+          <button class="btn">📅 Ejercicio 2026</button>
+          <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+          <button class="btn primary" data-modal="asiento">+ Nuevo asiento</button>
+        </div>
+      </div>
+
+      <div class="subtabs" id="cta-tabs">
+        <button class="subtab active" data-sub="diario">Libro diario</button>
+        <button class="subtab" data-sub="plan">Plan contable</button>
+        <button class="subtab" data-sub="balances">Balances / Sumas y saldos</button>
+        <button class="subtab" data-sub="pyg">Cuenta de PyG</button>
+      </div>
+
+      <!-- Libro diario -->
+      <div class="card subview" id="sub-diario">
+        <div class="toolbar">
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" placeholder="Buscar cuenta, concepto o documento…" data-filter="tabla-diario">
+          </div>
+          <div class="sep"></div>
+          <button class="btn">Filtrar por fecha</button>
+          <button class="btn">Regularizar</button>
+          <div class="info" id="diario-info">14 apuntes</div>
+        </div>
+        <div class="card-body flush table-wrap">
+          <table id="tabla-diario">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Asiento</th><th>Cuenta</th><th>Denominación</th>
+                <th>Documento</th><th class="num">Debe</th><th class="num">Haber</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>02/10/2026</td><td class="code">2026-0041</td><td class="code">6000</td><td>Compras de mercancías</td><td>FAC-2026-0912</td><td class="num">3.000,00</td><td class="num">—</td></tr>
+              <tr><td>02/10/2026</td><td class="code">2026-0041</td><td class="code">4710</td><td>H.P. (A.A.T.) IVA soportado</td><td>FAC-2026-0912</td><td class="num">630,00</td><td class="num">—</td></tr>
+              <tr><td>02/10/2026</td><td class="code">2026-0041</td><td class="code">4000</td><td>Proveedores</td><td>FAC-2026-0912</td><td class="num">—</td><td class="num">3.630,00</td></tr>
+              <tr><td>03/10/2026</td><td class="code">2026-0042</td><td class="code">4300</td><td>Clientes</td><td>FAC-2026-0193</td><td class="num">6.050,00</td><td class="num">—</td></tr>
+              <tr><td>03/10/2026</td><td class="code">2026-0042</td><td class="code">4720</td><td>H.P. (A.A.T.) IVA repercutido</td><td>FAC-2026-0193</td><td class="num">1.270,50</td><td class="num">—</td></tr>
+              <tr><td>03/10/2026</td><td class="code">2026-0042</td><td class="code">7000</td><td>Ventas de mercancías</td><td>FAC-2026-0193</td><td class="num">—</td><td class="num">7.320,50</td></tr>
+              <tr><td>05/10/2026</td><td class="code">2026-0043</td><td class="code">5700</td><td>Bancos, c/c</td><td>REC-0091</td><td class="num">7.320,50</td><td class="num">—</td></tr>
+              <tr><td>05/10/2026</td><td class="code">2026-0043</td><td class="code">4300</td><td>Clientes</td><td>REC-0091</td><td class="num">—</td><td class="num">7.320,50</td></tr>
+              <tr><td>06/10/2026</td><td class="code">2026-0044</td><td class="code">6400</td><td>Sueldos y salarios</td><td>NÓMINA 10/26</td><td class="num">4.200,00</td><td class="num">—</td></tr>
+              <tr><td>06/10/2026</td><td class="code">2026-0044</td><td class="code">5700</td><td>Bancos, c/c</td><td>NÓMINA 10/26</td><td class="num">—</td><td class="num">4.200,00</td></tr>
+              <tr><td>06/10/2026</td><td class="code">2026-0045</td><td class="code">6280</td><td>Arrendamientos y cánones</td><td>ALQ-10-26</td><td class="num">980,00</td><td class="num">—</td></tr>
+              <tr><td>06/10/2026</td><td class="code">2026-0045</td><td class="code">5700</td><td>Bancos, c/c</td><td>ALQ-10-26</td><td class="num">—</td><td class="num">980,00</td></tr>
+              <tr><td>07/10/2026</td><td class="code">2026-0046</td><td class="code">4000</td><td>Proveedores</td><td>REC-0107</td><td class="num">1.815,00</td><td class="num">—</td></tr>
+              <tr><td>07/10/2026</td><td class="code">2026-0046</td><td class="code">5700</td><td>Bancos, c/c</td><td>REC-0107</td><td class="num">—</td><td class="num">1.815,00</td></tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="5">TOTALES</td><td class="num" id="diario-debe">25.266,00</td><td class="num" id="diario-haber">25.266,00</td></tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Plan contable -->
+      <div class="card subview" id="sub-plan" style="display:none">
+        <div class="toolbar">
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" placeholder="Buscar código o denominación…" data-filter="tabla-plan">
+          </div>
+          <div class="info">PGC · Variantes PYMES (RD 1515/2007)</div>
+        </div>
+        <div class="card-body flush table-wrap">
+          <table id="tabla-plan">
+            <thead><tr><th>Código</th><th>Denominación</th><th>Grupo</th><th class="num">Debe</th><th class="num">Haber</th><th class="num">Saldo</th></tr></thead>
+            <tbody>
+              <tr><td class="code">1000</td><td>Intangibles</td><td><span class="chip gray">Activo no corriente</span></td><td class="num">18.500,00</td><td class="num">—</td><td class="num">18.500,00</td></tr>
+              <tr><td class="code">2000</td><td>Existencias — Mercaderías</td><td><span class="chip gray">Activo circulante</span></td><td class="num">42.310,00</td><td class="num">38.905,00</td><td class="num">3.405,00</td></tr>
+              <tr><td class="code">4000</td><td>Proveedores</td><td><span class="chip gray">Deuda</span></td><td class="num">31.240,00</td><td class="num">34.870,00</td><td class="num negative">-3.630,00</td></tr>
+              <tr><td class="code">4100</td><td>Acreedores por prestación de servicios</td><td><span class="chip gray">Deuda</span></td><td class="num">9.980,00</td><td class="num">10.960,00</td><td class="num negative">-980,00</td></tr>
+              <tr><td class="code">4300</td><td>Clientes</td><td><span class="chip gray">Activo circulante</span></td><td class="num">162.415,00</td><td class="num">114.600,00</td><td class="num">47.815,00</td></tr>
+              <tr><td class="code">4710</td><td>H.P. (A.A.T.) IVA soportado</td><td><span class="chip gray">Hacienda</span></td><td class="num">11.244,00</td><td class="num">4.710,00</td><td class="num">6.534,00</td></tr>
+              <tr><td class="code">4720</td><td>H.P. (A.A.T.) IVA repercutido</td><td><span class="chip gray">Hacienda</span></td><td class="num">8.405,00</td><td class="num">21.315,50</td><td class="num negative">-12.910,50</td></tr>
+              <tr><td class="code">5700</td><td>Bancos, c/c</td><td><span class="chip gray">Tesorería</span></td><td class="num">214.760,00</td><td class="num">186.315,00</td><td class="num">28.445,00</td></tr>
+              <tr><td class="code">5720</td><td>Caja, euros</td><td><span class="chip gray">Tesorería</span></td><td class="num">9.420,00</td><td class="num">7.105,00</td><td class="num">2.315,00</td></tr>
+              <tr><td class="code">6000</td><td>Compras de mercancías</td><td><span class="chip gray">Gastos</span></td><td class="num">84.610,00</td><td class="num">—</td><td class="num">84.610,00</td></tr>
+              <tr><td class="code">6280</td><td>Arrendamientos y cánones</td><td><span class="chip gray">Gastos</span></td><td class="num">11.760,00</td><td class="num">—</td><td class="num">11.760,00</td></tr>
+              <tr><td class="code">6400</td><td>Sueldos y salarios</td><td><span class="chip gray">Gastos</span></td><td class="num">58.560,00</td><td class="num">—</td><td class="num">58.560,00</td></tr>
+              <tr><td class="code">7000</td><td>Ventas de mercancías</td><td><span class="chip gray">Ingresos</span></td><td class="num">—</td><td class="num">164.930,00</td><td class="num negative">-164.930,00</td></tr>
+              <tr><td class="code">7050</td><td>Prestación de servicios</td><td><span class="chip gray">Ingresos</span></td><td class="num">—</td><td class="num">21.470,00</td><td class="num negative">-21.470,00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Balances -->
+      <div class="card subview" id="sub-balances" style="display:none">
+        <div class="card-head"><h2>Balance de sumas y saldos · Ejercicio 2026 (hasta 07/10/2026)</h2></div>
+        <div class="card-body flush table-wrap">
+          <table>
+            <thead><tr><th>Código</th><th>Denominación</th><th class="num">Debe</th><th class="num">Haber</th><th class="num">Saldo deudor</th><th class="num">Saldo acreedor</th></tr></thead>
+            <tbody>
+              <tr><td class="code">1000</td><td>Intangibles</td><td class="num">18.500,00</td><td class="num">—</td><td class="num">18.500,00</td><td class="num">—</td></tr>
+              <tr><td class="code">2000</td><td>Existencias — Mercaderías</td><td class="num">42.310,00</td><td class="num">38.905,00</td><td class="num">3.405,00</td><td class="num">—</td></tr>
+              <tr><td class="code">4000</td><td>Proveedores</td><td class="num">31.240,00</td><td class="num">34.870,00</td><td class="num">—</td><td class="num">3.630,00</td></tr>
+              <tr><td class="code">4100</td><td>Acreedores por prestación de servicios</td><td class="num">9.980,00</td><td class="num">10.960,00</td><td class="num">—</td><td class="num">980,00</td></tr>
+              <tr><td class="code">4300</td><td>Clientes</td><td class="num">162.415,00</td><td class="num">114.600,00</td><td class="num">47.815,00</td><td class="num">—</td></tr>
+              <tr><td class="code">4710</td><td>H.P. IVA soportado</td><td class="num">11.244,00</td><td class="num">4.710,00</td><td class="num">6.534,00</td><td class="num">—</td></tr>
+              <tr><td class="code">4720</td><td>H.P. IVA repercutido</td><td class="num">8.405,00</td><td class="num">21.315,50</td><td class="num">—</td><td class="num">12.910,50</td></tr>
+              <tr><td class="code">5700</td><td>Bancos, c/c</td><td class="num">214.760,00</td><td class="num">186.315,00</td><td class="num">28.445,00</td><td class="num">—</td></tr>
+              <tr><td class="code">5720</td><td>Caja, euros</td><td class="num">9.420,00</td><td class="num">7.105,00</td><td class="num">2.315,00</td><td class="num">—</td></tr>
+              <tr><td class="code">6000</td><td>Compras de mercancías</td><td class="num">84.610,00</td><td class="num">—</td><td class="num">84.610,00</td><td class="num">—</td></tr>
+              <tr><td class="code">6280</td><td>Arrendamientos y cánones</td><td class="num">11.760,00</td><td class="num">—</td><td class="num">11.760,00</td><td class="num">—</td></tr>
+              <tr><td class="code">6400</td><td>Sueldos y salarios</td><td class="num">58.560,00</td><td class="num">—</td><td class="num">58.560,00</td><td class="num">—</td></tr>
+              <tr><td class="code">7000</td><td>Ventas de mercancías</td><td class="num">—</td><td class="num">164.930,00</td><td class="num">—</td><td class="num">164.930,00</td></tr>
+              <tr><td class="code">7050</td><td>Prestación de servicios</td><td class="num">—</td><td class="num">21.470,00</td><td class="num">—</td><td class="num">21.470,00</td></tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="2">TOTALES</td><td class="num">663.209,00</td><td class="num">663.209,00</td><td class="num">264.694,00</td><td class="num">264.694,00</td></tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- PyG -->
+      <div class="card subview" id="sub-pyg" style="display:none">
+        <div class="card-head"><h2>Cuenta de pérdidas y ganancias · Ejercicio 2026</h2></div>
+        <div class="card-body" style="max-width:560px">
+          <div class="pyg-row"><span>Ventas de mercancías (7000)</span><span class="v">164.930,00 €</span></div>
+          <div class="pyg-row"><span>Prestación de servicios (7050)</span><span class="v">21.470,00 €</span></div>
+          <div class="pyg-row total"><span>Total ingresos</span><span class="v">186.400,00 €</span></div>
+          <div style="height:14px"></div>
+          <div class="pyg-row"><span>Compras de mercancías (6000)</span><span class="v negative">-84.610,00 €</span></div>
+          <div class="pyg-row"><span>Arrendamientos y cánones (6280)</span><span class="v negative">-11.760,00 €</span></div>
+          <div class="pyg-row"><span>Sueldos y salarios (6400)</span><span class="v negative">-58.560,00 €</span></div>
+          <div class="pyg-row total"><span>Total gastos</span><span class="v negative">-154.930,00 €</span></div>
+          <div class="pyg-row total" style="border-top-color:var(--green);color:var(--green)">
+            <span>Resultado del ejercicio (beneficio)</span><span class="v">31.470,00 €</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ---------- CUENTAS CORRIENTES ---------- -->
+    <section class="view" id="view-cuentas">
+      <div class="view-head">
+        <div>
+          <div class="breadcrumb">Mónica · Gestión / Cuentas corrientes / <b>Movimientos</b></div>
+          <h1>Cuentas corrientes</h1>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="toast('Saldos recalculados (demo)')">Recalcular saldos</button>
+          <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+          <button class="btn primary" data-modal="movimiento">+ Nuevo movimiento</button>
+        </div>
+      </div>
+
+      <div class="grid kpis">
+        <div class="card kpi accent">
+          <div class="label">Saldo a favor de la empresa</div>
+          <div class="value">47.815,00 €</div>
+          <div class="delta">8 cuentas de clientes</div>
+        </div>
+        <div class="card kpi red">
+          <div class="label">Saldo deudor vencido</div>
+          <div class="value">12.300,00 €</div>
+          <div class="delta">2 cuentas sin regularizar</div>
+        </div>
+        <div class="card kpi green">
+          <div class="label">A favor de proveedores</div>
+          <div class="value">4.610,00 €</div>
+          <div class="delta">6 cuentas de proveedores</div>
+        </div>
+        <div class="card kpi amber">
+          <div class="label">Antigüedad media</div>
+          <div class="value">28 días</div>
+          <div class="delta">Plazo medio de cobro objetivo: 45 d</div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <div class="card-head"><h2>Listado de cuentas</h2></div>
+          <div class="toolbar">
+            <div class="search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" placeholder="Buscar cuenta o tercero…" data-filter="tabla-cc">
+            </div>
+            <div class="info">Pulsa una fila para ver sus movimientos</div>
+          </div>
+          <div class="card-body flush table-wrap">
+            <table id="tabla-cc" class="clickable">
+              <thead>
+                <tr><th>Cuenta</th><th>Tercero</th><th>Tipo</th><th class="num">Debe</th><th class="num">Haber</th><th class="num">Saldo</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                <tr data-cc="c1" class="selected"><td class="code">4300.001</td><td>Construcciones Vega, S.L.</td><td><span class="chip info">Cliente</span></td><td class="num">26.940,00</td><td class="num">14.810,00</td><td class="num positive">12.130,00</td><td><span class="chip ok">Al corriente</span></td></tr>
+                <tr data-cc="c2"><td class="code">4300.002</td><td>Textil Aurora, S.A.</td><td><span class="chip info">Cliente</span></td><td class="num">31.250,00</td><td class="num">27.100,00</td><td class="num positive">4.150,00</td><td><span class="chip warn">Vence mañana</span></td></tr>
+                <tr data-cc="c3"><td class="code">4300.003</td><td>Panadería El Molino</td><td><span class="chip info">Cliente</span></td><td class="num">9.845,00</td><td class="num">9.000,00</td><td class="num positive">845,00</td><td><span class="chip bad">Vencido 7 d</span></td></tr>
+                <tr data-cc="c4"><td class="code">4300.004</td><td>Ferretería Duero</td><td><span class="chip info">Cliente</span></td><td class="num">18.470,50</td><td class="num">15.200,00</td><td class="num positive">3.270,50</td><td><span class="chip ok">Al corriente</span></td></tr>
+                <tr data-cc="c5"><td class="code">4300.005</td><td>Clínicas San Gabriel</td><td><span class="chip info">Cliente</span></td><td class="num">42.760,00</td><td class="num">35.439,50</td><td class="num positive">7.320,50</td><td><span class="chip ok">Al corriente</span></td></tr>
+                <tr data-cc="c6"><td class="code">4300.006</td><td>Distribuciones Norte, S.L.</td><td><span class="chip info">Cliente</span></td><td class="num">21.300,00</td><td class="num">21.300,00</td><td class="num">0,00</td><td><span class="chip gray">Cerrada</span></td></tr>
+                <tr data-cc="c7"><td class="code">4300.007</td><td>Gráficas Limay, S.L.</td><td><span class="chip info">Cliente</span></td><td class="num">19.755,00</td><td class="num">12.450,00</td><td class="num positive">7.305,00</td><td><span class="chip bad">Vencido 12 d</span></td></tr>
+                <tr data-cc="c8"><td class="code">4300.008</td><td>Hostelería Bahía</td><td><span class="chip info">Cliente</span></td><td class="num">11.200,00</td><td class="num">9.470,00</td><td class="num positive">1.730,00</td><td><span class="chip ok">Al corriente</span></td></tr>
+                <tr data-cc="p1"><td class="code">4000.001</td><td>Papelera Ibérica, S.L.</td><td><span class="chip gray">Proveedor</span></td><td class="num">18.300,00</td><td class="num">21.930,00</td><td class="num negative">-3.630,00</td><td><span class="chip info">A favor (15 d)</span></td></tr>
+                <tr data-cc="p2"><td class="code">4000.002</td><td>Sistemas InfoTech</td><td><span class="chip gray">Proveedor</span></td><td class="num">7.450,00</td><td class="num">7.450,00</td><td class="num">0,00</td><td><span class="chip gray">Cerrada</span></td></tr>
+                <tr data-cc="p3"><td class="code">4000.003</td><td>Almacenes Sur, S.L.</td><td><span class="chip gray">Proveedor</span></td><td class="num">24.115,00</td><td class="num">24.755,00</td><td class="num negative">-640,00</td><td><span class="chip info">A favor (30 d)</span></td></tr>
+                <tr data-cc="p4"><td class="code">4100.001</td><td>Limpiezas Delta</td><td><span class="chip gray">Proveedor</span></td><td class="num">9.980,00</td><td class="num">10.960,00</td><td class="num negative">-980,00</td><td><span class="chip info">A favor (30 d)</span></td></tr>
+                <tr data-cc="p5"><td class="code">4100.002</td><td>Seguros Mediterráneo</td><td><span class="chip gray">Proveedor</span></td><td class="num">5.600,00</td><td class="num">6.240,00</td><td class="num negative">-640,00</td><td><span class="chip info">A favor (45 d)</span></td></tr>
+                <tr data-cc="p6"><td class="code">4100.003</td><td>Suministros Oeste, S.L.</td><td><span class="chip gray">Proveedor</span></td><td class="num">3.180,00</td><td class="num">3.180,00</td><td class="num">0,00</td><td><span class="chip gray">Cerrada</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="panel-cc">
+          <div class="card-head">
+            <h2 id="cc-name">Construcciones Vega, S.L.</h2>
+            <div class="right"><span class="chip info" id="cc-code">4300.001</span></div>
+          </div>
+          <div class="cc-summary">
+            <div class="box"><div class="l">Debe</div><div class="v" id="cc-debe">26.940,00 €</div></div>
+            <div class="box"><div class="l">Haber</div><div class="v" id="cc-haber">14.810,00 €</div></div>
+            <div class="box"><div class="l">Saldo</div><div class="v positive" id="cc-saldo">12.130,00 €</div></div>
+          </div>
+          <div class="card-body flush table-wrap" style="max-height:340px;overflow-y:auto">
+            <table>
+              <thead><tr><th>Fecha</th><th>Documento</th><th>Concepto</th><th class="num">Debe</th><th class="num">Haber</th></tr></thead>
+              <tbody id="cc-movs"></tbody>
+            </table>
+          </div>
+          <div class="card-body" style="border-top:1px solid var(--border-soft);display:flex;gap:8px">
+            <button class="btn primary" data-modal="movimiento">+ Apuntar</button>
+            <button class="btn" onclick="toast('Remesa de cobro generada (demo)')">Generar remesa</button>
+            <button class="btn" onclick="window.print()">Imprimir</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="card" id="aging">
+        <div class="card-head"><h2>Antigüedad de saldos — clientes</h2><div class="right muted" style="font-size:12px">Total: 47.815,00 €</div></div>
+        <div class="aging">
+          <div class="row"><div class="tramo">Corriente</div><div class="bar"><i style="width:74.2%;background:var(--green)"></i></div><div class="amt">35.515,00 €</div></div>
+          <div class="row"><div class="tramo">1 – 30 días</div><div class="bar"><i style="width:10.8%;background:#e0a028"></i></div><div class="amt">5.150,00 €</div></div>
+          <div class="row"><div class="tramo">31 – 60 días</div><div class="bar"><i style="width:6.4%;background:#d97b21"></i></div><div class="amt">3.045,00 €</div></div>
+          <div class="row"><div class="tramo">61 – 90 días</div><div class="bar"><i style="width:4.3%;background:#cf5a3c"></i></div><div class="amt">2.060,00 €</div></div>
+          <div class="row"><div class="tramo">Más de 90 d</div><div class="bar"><i style="width:4.3%;background:var(--red)"></i></div><div class="amt">2.045,00 €</div></div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i> En plazo</span>
+          <span><i style="background:#e0a028"></i> Próximo a vencer</span>
+          <span><i style="background:var(--red)"></i> Vencido</span>
+          <span class="muted">Importes con IVA incluido · actualizado a 07/10/2026</span>
+        </div>
+      </div>
+    </section>
+    <!-- ---------- TERCEROS ---------- -->
+    <section class="view" id="view-terceros">
+      <div class="view-head">
+        <div>
+          <div class="breadcrumb">Mónica · Gestión / Terceros / <b id="ter-crumb">Clientes</b></div>
+          <h1 id="ter-title">Clientes</h1>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="toast('Importación CSV (demo)')">Importar CSV</button>
+          <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+          <button class="btn primary" id="ter-nuevo" data-modal="tercero">+ Nuevo cliente</button>
+        </div>
+      </div>
+
+      <div class="subtabs" id="ter-tabs">
+        <button class="subtab active" data-tab="clientes">Clientes <span class="muted">(8)</span></button>
+        <button class="subtab" data-tab="proveedores">Proveedores <span class="muted">(6)</span></button>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <div class="toolbar">
+            <div class="search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" id="ter-search" placeholder="Buscar por nombre, CIF o población…">
+            </div>
+            <div class="info" id="ter-info">8 registros</div>
+          </div>
+          <div class="card-body flush table-wrap">
+            <table id="tabla-clientes" class="clickable ter-table">
+              <thead><tr><th>Código</th><th>Razón social</th><th>CIF/NIF</th><th>Población</th><th class="num">Saldo</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr data-ter="cl1" class="selected"><td class="code">C-001</td><td>Construcciones Vega, S.L.</td><td>B48256731</td><td>Valladolid</td><td class="num positive">12.130,00</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="cl2"><td class="code">C-002</td><td>Textil Aurora, S.A.</td><td>A46120985</td><td>Valencia</td><td class="num positive">4.150,00</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="cl3"><td class="code">C-003</td><td>Panadería El Molino</td><td>24558123K</td><td>Segovia</td><td class="num positive">845,00</td><td><span class="chip warn">Revisar</span></td></tr>
+                <tr data-ter="cl4"><td class="code">C-004</td><td>Ferretería Duero</td><td>B37112456</td><td>Zamora</td><td class="num positive">3.270,50</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="cl5"><td class="code">C-005</td><td>Clínicas San Gabriel</td><td>B87451209</td><td>Madrid</td><td class="num positive">7.320,50</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="cl6"><td class="code">C-006</td><td>Distribuciones Norte, S.L.</td><td>B26334521</td><td>Bilbao</td><td class="num">0,00</td><td><span class="chip gray">Inactivo</span></td></tr>
+                <tr data-ter="cl7"><td class="code">C-007</td><td>Gráficas Limay, S.L.</td><td>B49110276</td><td>Zaragoza</td><td class="num positive">7.305,00</td><td><span class="chip bad">Vencido</span></td></tr>
+                <tr data-ter="cl8"><td class="code">C-008</td><td>Hostelería Bahía</td><td>77894512M</td><td>A Coruña</td><td class="num positive">1.730,00</td><td><span class="chip ok">Activo</span></td></tr>
+              </tbody>
+            </table>
+
+            <table id="tabla-proveedores" class="clickable ter-table" style="display:none">
+              <thead><tr><th>Código</th><th>Razón social</th><th>CIF/NIF</th><th>Población</th><th class="num">Saldo</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr data-ter="pr1" class="selected"><td class="code">P-001</td><td>Papelera Ibérica, S.L.</td><td>B82345109</td><td>Madrid</td><td class="num negative">-3.630,00</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="pr2"><td class="code">P-002</td><td>Sistemas InfoTech</td><td>B96120345</td><td>Barcelona</td><td class="num">0,00</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="pr3"><td class="code">P-003</td><td>Almacenes Sur, S.L.</td><td>B41123987</td><td>Sevilla</td><td class="num negative">-640,00</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="pr4"><td class="code">P-004</td><td>Limpiezas Delta</td><td>45120987P</td><td>Valencia</td><td class="num negative">-980,00</td><td><span class="chip ok">Activo</span></td></tr>
+                <tr data-ter="pr5"><td class="code">P-005</td><td>Seguros Mediterráneo</td><td>A58201734</td><td>Alicante</td><td class="num negative">-640,00</td><td><span class="chip warn">Renovación</span></td></tr>
+                <tr data-ter="pr6"><td class="code">P-006</td><td>Suministros Oeste, S.L.</td><td>B06112349</td><td>Badajoz</td><td class="num">0,00</td><td><span class="chip gray">Inactivo</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2 id="ficha-title">Ficha del cliente</h2>
+            <div class="right"><span class="chip info" id="ficha-code">C-001</span></div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field full"><label>Razón social</label><input id="f-nombre" value="Construcciones Vega, S.L."></div>
+              <div class="field"><label>CIF / NIF</label><input id="f-cif" value="B48256731"></div>
+              <div class="field"><label>Tipo</label><input id="f-tipo" value="Cliente" readonly></div>
+              <div class="field full"><label>Dirección</label><input id="f-dir" value="Calle Duero 14, 2º B"></div>
+              <div class="field"><label>CP</label><input id="f-cp" value="47001"></div>
+              <div class="field"><label>Población</label><input id="f-pob" value="Valladolid"></div>
+              <div class="field"><label>Teléfono</label><input id="f-tel" value="983 21 45 78"></div>
+              <div class="field"><label>Email</label><input id="f-mail" value="admin@construccionesvega.es"></div>
+              <div class="field"><label>Condición de pago</label>
+                <select id="f-pago"><option>30 días</option><option selected>60 días</option><option>90 días</option><option>Contado</option></select>
+              </div>
+              <div class="field"><label>Forma de pago</label>
+                <select id="f-forma"><option selected>Transferencia</option><option>Domiciliación bancaria</option><option>Cheque</option><option>Tarjeta</option></select>
+              </div>
+              <div class="field"><label>Límite de crédito (€)</label><input id="f-credito" value="25.000,00"></div>
+              <div class="field"><label>Comercial asignado</label><input id="f-com" value="Rosa Gil"></div>
+              <div class="field full"><label>Observaciones</label><textarea id="f-obs" rows="2">Cliente con pedido mensual recurrente. Factura agrupada a fin de mes.</textarea></div>
+            </div>
+          </div>
+          <div class="ficha-actions">
+            <button class="btn primary" onclick="toast('Ficha guardada (demo)')">💾 Guardar</button>
+            <button class="btn" onclick="toast('Ficha duplicada (demo)')">Duplicar</button>
+            <button class="btn" onclick="toast('Borrado cancelado en la demo')">Dar de baja</button>
+            <button class="btn" style="margin-left:auto" data-view="cuentas">Ver cuenta corriente →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= STATUS BAR ================= -->
+<footer class="statusbar">
+  <span><span class="ok-dot"></span>Conectado · base de datos DEMO_MONICA</span>
+  <span>Ejercicio abierto: 2026 (periodo 10)</span>
+  <span>Última copia de seguridad: hoy 07:15</span>
+  <span class="spacer"></span>
+  <span id="clock">—</span>
+  <span>v1.0 demo · interfaz inspirada en Mónica</span>
+</footer>
+
+<!-- ================= MODAL ================= -->
+<div class="modal-back" id="modal-back">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header><span id="modal-title">Nuevo registro</span><button onclick="closeModal()" aria-label="Cerrar">×</button></header>
+    <div class="modal-body" id="modal-body"></div>
+    <footer>
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" id="modal-save">Guardar</button>
+    </footer>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+/* =========================================================
+   DATOS DEMO — movimientos por cuenta corriente
+   ========================================================= */
+const MOVIMIENTOS = {
+  c1:[
+    {f:'05/10/2026',doc:'REC-0091',c:'Cobro recibo',d:'—',h:'7.320,50'},
+    {f:'03/10/2026',doc:'FAC-2026-0193',c:'Venta mercancía + IVA 21%',d:'7.320,50',h:'—'},
+    {f:'22/09/2026',doc:'REC-0084',c:'Cobro recibo',d:'—',h:'7.489,50'},
+    {f:'18/09/2026',doc:'FAC-2026-0176',c:'Obra urbanización Pisuerga',d:'7.489,50',h:'—'},
+    {f:'04/09/2026',doc:'FAC-2026-0159',c:'Suministros obra — agosto',d:'12.130,00',h:'—'}
+  ],
+  c2:[
+    {f:'30/09/2026',doc:'REC-0088',c:'Cobro parcial',d:'—',h:'12.000,00'},
+    {f:'25/09/2026',doc:'FAC-2026-0184',c:'Tejidos — pedido 4471',d:'16.150,00',h:'—'},
+    {f:'10/09/2026',doc:'FAC-2026-0163',c:'Tejidos — pedido 4438',d:'15.100,00',h:'—'},
+    {f:'02/09/2026',doc:'REC-0076',c:'Cobro recibo',d:'—',h:'15.100,00'}
+  ],
+  c3:[
+    {f:'20/09/2026',doc:'FAC-2026-0180',c:'Suministros panadería',d:'845,00',h:'—'},
+    {f:'12/09/2026',doc:'REC-0079',c:'Cobro recibo',d:'—',h:'9.000,00'},
+    {f:'05/09/2026',doc:'FAC-2026-0155',c:'Suministros agosto',d:'9.000,00',h:'—'}
+  ],
+  c4:[
+    {f:'06/10/2026',doc:'FAC-2026-0195',c:'Material ferretería',d:'3.270,50',h:'—'},
+    {f:'28/09/2026',doc:'REC-0086',c:'Cobro recibo',d:'—',h:'7.700,00'},
+    {f:'15/09/2026',doc:'FAC-2026-0170',c:'Material septiembre',d:'7.700,00',h:'—'}
+  ],
+  c5:[
+    {f:'05/10/2026',doc:'REC-0091',c:'Cobro recibo',d:'—',h:'7.320,50'},
+    {f:'30/09/2026',doc:'FAC-2026-0189',c:'Mantenimiento trimestral',d:'7.320,50',h:'—'},
+    {f:'20/09/2026',doc:'REC-0082',c:'Cobro recibo',d:'—',h:'28.119,00'},
+    {f:'12/09/2026',doc:'FAC-2026-0166',c:'Renovación licencias',d:'28.119,00',h:'—'}
+  ],
+  c6:[
+    {f:'25/09/2026',doc:'REC-0085',c:'Cobro total — cuenta saldada',d:'—',h:'21.300,00'},
+    {f:'10/09/2026',doc:'FAC-2026-0161',c:'Distribución material',d:'21.300,00',h:'—'}
+  ],
+  c7:[
+    {f:'25/09/2026',doc:'FAC-2026-0185',c:'Impresión catálogo',d:'7.305,00',h:'—'},
+    {f:'18/09/2026',doc:'REC-0081',c:'Cobro parcial',d:'—',h:'6.300,00'},
+    {f:'02/09/2026',doc:'FAC-2026-0152',c:'Impresión dípticos',d:'12.450,00',h:'—'}
+  ],
+  c8:[
+    {f:'01/10/2026',doc:'FAC-2026-0191',c:'Equipamiento restaurante',d:'1.730,00',h:'—'},
+    {f:'22/09/2026',doc:'REC-0083',c:'Cobro recibo',d:'—',h:'8.470,00'},
+    {f:'08/09/2026',doc:'FAC-2026-0158',c:'Equipamiento — fase 1',d:'8.470,00',h:'—'}
+  ],
+  p1:[
+    {f:'07/10/2026',doc:'REC-0107',c:'Pago a proveedor',d:'1.815,00',h:'—'},
+    {f:'02/10/2026',doc:'FAC-2026-0912',c:'Compra mercancía (3.000 + IVA)',d:'—',h:'3.630,00'},
+    {f:'15/09/2026',doc:'REC-0080',c:'Pago a proveedor',d:'9.600,00',h:'—'},
+    {f:'10/09/2026',doc:'FAC-2026-0874',c:'Compra mercancía',d:'—',h:'9.600,00'}
+  ],
+  p2:[
+    {f:'30/09/2026',doc:'REC-0089',c:'Pago mantenimiento',d:'7.450,00',h:'—'},
+    {f:'26/09/2026',doc:'FAC-2026-0455',c:'Mantenimiento anual',d:'—',h:'7.450,00'}
+  ],
+  p3:[
+    {f:'07/10/2026',doc:'FAC-2026-0930',c:'Compra material almacén',d:'—',h:'640,00'},
+    {f:'20/09/2026',doc:'REC-0087',c:'Pago a proveedor',d:'18.000,00',h:'—'},
+    {f:'12/09/2026',doc:'FAC-2026-0891',c:'Compra material',d:'—',h:'18.640,00'}
+  ],
+  p4:[
+    {f:'30/09/2026',doc:'FAC-2026-0501',c:'Servicio limpieza — septiembre',d:'—',h:'980,00'},
+    {f:'31/08/2026',doc:'REC-0072',c:'Pago servicio',d:'9.980,00',h:'—'},
+    {f:'31/08/2026',doc:'FAC-2026-0478',c:'Servicio limpieza — agosto',d:'—',h:'980,00'}
+  ],
+  p5:[
+    {f:'01/10/2026',doc:'FAC-2026-0510',c:'Póliza comercial',d:'—',h:'640,00'},
+    {f:'15/09/2026',doc:'REC-0080',c:'Pago prima',d:'5.600,00',h:'—'},
+    {f:'01/09/2026',doc:'FAC-2026-0489',c:'Póliza comercial',d:'—',h:'640,00'}
+  ],
+  p6:[
+    {f:'25/09/2026',doc:'REC-0085',c:'Pago — cuenta saldada',d:'3.180,00',h:'—'},
+    {f:'18/09/2026',doc:'FAC-2026-0466',c:'Suministros oficina',d:'—',h:'3.180,00'}
+  ]
+};
+const TERCEROS = {
+  cl1:{nombre:'Construcciones Vega, S.L.',cif:'B48256731',tipo:'Cliente',dir:'Calle Duero 14, 2º B',cp:'47001',pob:'Valladolid',tel:'983 21 45 78',mail:'admin@construccionesvega.es',pago:'60 días',forma:'Transferencia',credito:'25.000,00',com:'Rosa Gil',obs:'Cliente con pedido mensual recurrente. Factura agrupada a fin de mes.'},
+  cl2:{nombre:'Textil Aurora, S.A.',cif:'A46120985',tipo:'Cliente',dir:'Av. del Puerto 132',cp:'46023',pob:'Valencia',tel:'963 54 12 09',mail:'compras@textilaurora.com',pago:'30 días',forma:'Domiciliación bancaria',credito:'40.000,00',com:'Rosa Gil',obs:'Régimen especial de recargo de equivalencia. Revisar retención IRPF.'},
+  cl3:{nombre:'Panadería El Molino',cif:'24558123K',tipo:'Cliente',dir:'C/ Real 7',cp:'40001',pob:'Segovia',tel:'921 44 78 12',mail:'elmolino@correo.es',pago:'Contado',forma:'Transferencia',credito:'5.000,00',com:'Luis Prado',obs:'Cuenta con saldo vencido; llamar antes del próximo envío.'},
+  cl4:{nombre:'Ferretería Duero',cif:'B37112456',tipo:'Cliente',dir:'Ctra. de Zamora km 3',cp:'49028',pob:'Zamora',tel:'980 22 31 45',mail:'ferreteriaduero@gmail.com',pago:'30 días',forma:'Transferencia',credito:'15.000,00',com:'Luis Prado',obs:'Cliente de referencia en zona Oeste.'},
+  cl5:{nombre:'Clínicas San Gabriel',cif:'B87451209',tipo:'Cliente',dir:'Pº de la Castellana 101',cp:'28046',pob:'Madrid',tel:'91 556 90 21',mail:'administracion@sangabriel.es',pago:'60 días',forma:'Domiciliación bancaria',credito:'50.000,00',com:'Marta Cano',obs:'Contrato marco anual. Facturación trimestral por centro.'},
+  cl6:{nombre:'Distribuciones Norte, S.L.',cif:'B26334521',tipo:'Cliente',dir:'Pol. Ugalde 4',cp:'48970',pob:'Bilbao',tel:'944 10 55 67',mail:'logistica@disnorte.es',pago:'30 días',forma:'Transferencia',credito:'0,00',com:'Marta Cano',obs:'Inactivo desde septiembre — relación comercial finalizada.'},
+  cl7:{nombre:'Gráficas Limay, S.L.',cif:'B49110276',tipo:'Cliente',dir:'C/ Huesca 41',cp:'50014',pob:'Zaragoza',tel:'976 33 08 71',mail:'administracion@graficaslimay.com',pago:'60 días',forma:'Transferencia',credito:'20.000,00',com:'Rosa Gil',obs:'Saldo vencido: reclamado el 02/10. Promesa de pago para el 15/10.'},
+  cl8:{nombre:'Hostelería Bahía',cif:'77894512M',tipo:'Cliente',dir:'Rúa Nova 22',cp:'15003',pob:'A Coruña',tel:'981 20 44 19',mail:'hola@hosteleriabahia.es',pago:'30 días',forma:'Tarjeta',credito:'8.000,00',com:'Luis Prado',obs:'Alta reciente (junio 2026).'},
+  pr1:{nombre:'Papelera Ibérica, S.L.',cif:'B82345109',tipo:'Proveedor',dir:'C/ Ribera del Sena 9',cp:'28042',pob:'Madrid',tel:'91 307 22 14',mail:'pedidos@papeleraiberica.es',pago:'30 días',forma:'Domiciliación bancaria',credito:'—',com:'—',obs:'Proveedor principal de papelería y embalaje.'},
+  pr2:{nombre:'Sistemas InfoTech',cif:'B96120345',tipo:'Proveedor',dir:'C/ Jacinto Benavente 33',cp:'08007',pob:'Barcelona',tel:'93 412 55 80',mail:'soporte@infotech.es',pago:'30 días',forma:'Transferencia',credito:'—',com:'—',obs:'Mantenimiento del ERP. Renovación anual en enero.'},
+  pr3:{nombre:'Almacenes Sur, S.L.',cif:'B41123987',tipo:'Proveedor',dir:'Pol. La Red 18',cp:'41500',pob:'Sevilla',tel:'954 18 90 33',mail:'ventas@almacenessur.es',pago:'60 días',forma:'Transferencia',credito:'—',com:'—',obs:'Plazo negociado a 60 días desde 07/2026.'},
+  pr4:{nombre:'Limpiezas Delta',cif:'45120987P',tipo:'Proveedor',dir:'C/ Alboraya 5',cp:'46010',pob:'Valencia',tel:'963 99 10 24',mail:'administracion@limpiezasdelta.es',pago:'30 días',forma:'Domiciliación bancaria',credito:'—',com:'—',obs:'Servicio semanal en local central y nave.'},
+  pr5:{nombre:'Seguros Mediterráneo',cif:'A58201734',tipo:'Proveedor',dir:'Gran Vía 45, 8º',cp:'03001',pob:'Alicante',tel:'965 21 44 90',mail:'peritacion@segmediterraneo.es',pago:'45 días',forma:'Domiciliación bancaria',credito:'—',com:'—',obs:'Póliza de responsabilidad civil. Renovación 01/11/2026.'},
+  pr6:{nombre:'Suministros Oeste, S.L.',cif:'B06112349',tipo:'Proveedor',dir:'Av. de Portugal 112',cp:'06007',pob:'Badajoz',tel:'924 27 63 01',mail:'info@suministrosoeste.es',pago:'30 días',forma:'Transferencia',credito:'—',com:'—',obs:'Proveedor inactivo — sin pedidos desde agosto.'}
+};
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const $  = (s,c=document)=>c.querySelector(s);
+const $$ = (s,c=document)=>Array.from(c.querySelectorAll(s));
+
+let toastTimer;
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+function setView(view, opts = {}){
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+  $$('.topnav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  $$('.side-item').forEach(b => {
+    let match = b.dataset.view === view;
+    if(match && b.dataset.sub)   match = opts.sub === b.dataset.sub;
+    if(match && b.dataset.tab)   match = opts.tab === b.dataset.tab;
+    if(match && b.dataset.focus) match = opts.focus === b.dataset.focus;
+    if(match && !b.dataset.sub && !b.dataset.tab && !b.dataset.focus){
+      match = !opts.sub && !opts.tab && !opts.focus;
+    }
+    b.classList.toggle('active', match);
+  });
+
+  if(view === 'contabilidad' && opts.sub) setSub(opts.sub);
+  if(view === 'terceros' && opts.tab) setTab(opts.tab);
+  if(view === 'cuentas' && opts.focus){
+    const el = opts.focus === 'aging' ? $('#aging') : $('#panel-cc');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  $('.content').scrollTop = 0;
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-view]');
+  if(!btn) return;
+  const opts = {};
+  if(btn.dataset.sub) opts.sub = btn.dataset.sub;
+  if(btn.dataset.tab) opts.tab = btn.dataset.tab;
+  if(btn.dataset.focus) opts.focus = btn.dataset.focus;
+  setView(btn.dataset.view, opts);
+});
+
+/* Subtabs de contabilidad */
+function setSub(sub){
+  const titles = {diario:'Libro diario', plan:'Plan contable', balances:'Balances / Sumas y saldos', pyg:'Cuenta de PyG'};
+  $$('#cta-tabs .subtab').forEach(t => t.classList.toggle('active', t.dataset.sub === sub));
+  ['diario','plan','balances','pyg'].forEach(id => $('#sub-' + id).style.display = (id === sub ? '' : 'none'));
+  $('#cta-title').textContent = titles[sub];
+  $('#cta-crumb').textContent = titles[sub];
+}
+$('#cta-tabs').addEventListener('click', e => {
+  const t = e.target.closest('.subtab'); if(t) setSub(t.dataset.sub);
+});
+
+/* Subtabs de terceros */
+function setTab(tab){
+  $$('#ter-tabs .subtab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  $('#tabla-clientes').style.display    = tab === 'clientes'    ? '' : 'none';
+  $('#tabla-proveedores').style.display = tab === 'proveedores' ? '' : 'none';
+  const esCliente = tab === 'clientes';
+  $('#ter-title').textContent = esCliente ? 'Clientes' : 'Proveedores';
+  $('#ter-crumb').textContent = esCliente ? 'Clientes' : 'Proveedores';
+  $('#ter-nuevo').textContent = esCliente ? '+ Nuevo cliente' : '+ Nuevo proveedor';
+  $('#ter-info').textContent = (esCliente ? 8 : 6) + ' registros';
+  $('#ter-search').value = '';
+  $('#ficha-title').textContent = esCliente ? 'Ficha del cliente' : 'Ficha del proveedor';
+  const first = $(esCliente ? '#tabla-clientes' : '#tabla-proveedores').querySelector('tbody tr');
+  if(first) showTercero(first.dataset.ter, first);
+}
+$('#ter-tabs').addEventListener('click', e => {
+  const t = e.target.closest('.subtab'); if(t) setTab(t.dataset.tab);
+});
+/* =========================================================
+   FILTROS DE BÚSQUEDA (tablas con data-filter)
+   ========================================================= */
+$$('[data-filter]').forEach(input => {
+  input.addEventListener('input', () => {
+    const table = document.getElementById(input.dataset.filter);
+    if(!table) return;
+    const q = input.value.trim().toLowerCase();
+    let vis = 0;
+    $$('tbody tr', table).forEach(tr => {
+      const ok = tr.textContent.toLowerCase().includes(q);
+      tr.style.display = ok ? '' : 'none';
+      if(ok) vis++;
+    });
+    if(table.id === 'tabla-diario') $('#diario-info').textContent = vis + ' apuntes mostrados';
+  });
+});
+
+/* Búsqueda en terceros (afecta a la tabla visible) */
+$('#ter-search').addEventListener('input', () => {
+  const q = $('#ter-search').value.trim().toLowerCase();
+  const sel = $('#tabla-clientes').style.display === 'none' ? '#tabla-proveedores' : '#tabla-clientes';
+  let vis = 0;
+  $$(sel + ' tbody tr').forEach(tr => {
+    const ok = tr.textContent.toLowerCase().includes(q);
+    tr.style.display = ok ? '' : 'none';
+    if(ok) vis++;
+  });
+  $('#ter-info').textContent = vis + ' registros';
+});
+
+/* =========================================================
+   CUENTAS CORRIENTES — detalle de movimientos
+   ========================================================= */
+function showCC(id, row){
+  const movs = MOVIMIENTOS[id] || [];
+  const tr = row || $('#tabla-cc tr[data-cc="' + id + '"]');
+  if(!tr) return;
+  $$('#tabla-cc tbody tr').forEach(r => r.classList.toggle('selected', r === tr));
+
+  const cells = tr.children;
+  $('#cc-code').textContent = cells[0].textContent.trim();
+  $('#cc-name').textContent = cells[1].textContent.trim();
+
+  const num = t => parseFloat(t.replace(/\./g,'').replace(',','.')) || 0;
+  const debe  = num(cells[3].textContent);
+  const haber = num(cells[4].textContent);
+  const saldo = num(cells[5].textContent.replace('-','')) * (cells[5].textContent.trim().startsWith('-') ? -1 : 1);
+  const fmt = n => n.toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+
+  $('#cc-debe').textContent  = fmt(debe);
+  $('#cc-haber').textContent = fmt(haber);
+  const saldoEl = $('#cc-saldo');
+  saldoEl.textContent = (saldo < 0 ? '-' : '') + fmt(Math.abs(saldo));
+  saldoEl.className = 'v ' + (saldo > 0 ? 'positive' : saldo < 0 ? 'negative' : '');
+
+  const body = $('#cc-movs');
+  body.innerHTML = movs.map(m => `
+    <tr>
+      <td>${m.f}</td>
+      <td class="code">${m.doc}</td>
+      <td>${m.c}</td>
+      <td class="num">${m.d}</td>
+      <td class="num">${m.h}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin movimientos en el periodo.</td></tr>';
+}
+$('#tabla-cc').addEventListener('click', e => {
+  const tr = e.target.closest('tr[data-cc]'); if(tr) showCC(tr.dataset.cc, tr);
+});
+showCC('c1');
+
+/* =========================================================
+   FICHA DE TERCEROS
+   ========================================================= */
+function showTercero(id, row){
+  const t = TERCEROS[id]; if(!t) return;
+  const table = row.closest('table');
+  $$('tbody tr', table).forEach(r => r.classList.toggle('selected', r === row));
+  $('#ficha-code').textContent = row.children[0].textContent.trim();
+  $('#f-nombre').value = t.nombre;
+  $('#f-cif').value    = t.cif;
+  $('#f-tipo').value   = t.tipo;
+  $('#f-dir').value    = t.dir;
+  $('#f-cp').value     = t.cp;
+  $('#f-pob').value    = t.pob;
+  $('#f-tel').value    = t.tel;
+  $('#f-mail').value   = t.mail;
+  $('#f-pago').value   = t.pago;
+  $('#f-forma').value  = t.forma;
+  $('#f-credito').value= t.credito;
+  $('#f-com').value    = t.com;
+  $('#f-obs').value    = t.obs;
+}
+document.addEventListener('click', e => {
+  const tr = e.target.closest('.ter-table tbody tr[data-ter]');
+  if(tr) showTercero(tr.dataset.ter, tr);
+});
+/* =========================================================
+   MODALES (nuevos registros)
+   ========================================================= */
+const modalBack = $('#modal-back');
+let modalKind = null;
+
+const MODALS = {
+  asiento:{
+    title:'Nuevo asiento contable',
+    html:`
+      <div class="form-grid">
+        <div class="field"><label>Fecha</label><input type="date" id="m-fecha" value="2026-10-07"></div>
+        <div class="field"><label>Nº asiento</label><input value="2026-0047" readonly></div>
+        <div class="field full"><label>Concepto</label><input id="m-concepto" placeholder="Ej.: Venta mercancía FAC-2026-0194"></div>
+        <div class="field"><label>Cuenta debe</label><input id="m-cdebe" value="4300"></div>
+        <div class="field"><label>Importe debe (€)</label><input id="m-imp-debe" value="1.000,00"></div>
+        <div class="field"><label>Cuenta haber</label><input id="m-chaber" value="7000"></div>
+        <div class="field"><label>Importe haber (€)</label><input id="m-imp-haber" value="1.000,00"></div>
+      </div>
+      <div class="form-error" id="m-error">El asiento debe estar cuadrado: Debe = Haber.</div>`,
+    save(){
+      const d = parseImp($('#m-imp-debe').value);
+      const h = parseImp($('#m-imp-haber').value);
+      if(!d || !h || Math.abs(d - h) > 0.001){ $('#m-error').style.display = 'block'; return false; }
+      const concepto = $('#m-concepto').value.trim() || 'Asiento sin concepto';
+      const tb = $('#tabla-diario tbody');
+      const fmt = n => n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+      tb.insertAdjacentHTML('beforeend', `
+        <tr><td>07/10/2026</td><td class="code">2026-0047</td><td class="code">${esc($('#m-cdebe').value||'4300')}</td><td>${esc(concepto)}</td><td>MANUAL</td><td class="num">${fmt(d)}</td><td class="num">—</td></tr>
+        <tr><td>07/10/2026</td><td class="code">2026-0047</td><td class="code">${esc($('#m-chaber').value||'7000')}</td><td>${esc(concepto)}</td><td>MANUAL</td><td class="num">—</td><td class="num">${fmt(h)}</td></tr>`);
+      actualizarTotalesDiario();
+      toast('Asiento 2026-0047 contabilizado ✔');
+      return true;
+    }
+  },
+  movimiento:{
+    title:'Nuevo movimiento de cuenta corriente',
+    html:`
+      <div class="form-grid">
+        <div class="field full"><label>Cuenta / Tercero</label><input id="m-cc" placeholder="Ej.: 4300.001 — Construcciones Vega, S.L."></div>
+        <div class="field"><label>Fecha</label><input type="date" id="m-fecha2" value="2026-10-07"></div>
+        <div class="field"><label>Documento</label><input id="m-doc" placeholder="Ej.: FAC-2026-0194"></div>
+        <div class="field full"><label>Concepto</label><input id="m-concepto2" placeholder="Concepto del movimiento"></div>
+        <div class="field"><label>Debe (€)</label><input id="m-debe2" value="0,00"></div>
+        <div class="field"><label>Haber (€)</label><input id="m-haber2" value="0,00"></div>
+      </div>
+      <div class="form-error" id="m-error2">Indica el tercero y un importe (Debe o Haber).</div>`,
+    save(){
+      const cc = $('#m-cc').value.trim();
+      const d  = parseImp($('#m-debe2').value) || 0;
+      const h  = parseImp($('#m-haber2').value) || 0;
+      if(!cc || (d === 0 && h === 0)){ $('#m-error2').style.display = 'block'; return false; }
+      toast('Movimiento apuntado en ' + cc.split('—')[0].trim() + ' ✔');
+      return true;
+    }
+  },
+  tercero:{
+    title:'Nuevo registro',
+    html:`
+      <div class="form-grid">
+        <div class="field full"><label>Razón social</label><input id="m-razon" placeholder="Nombre o razón social"></div>
+        <div class="field"><label>CIF / NIF</label><input id="m-cif2" placeholder="Ej.: B12345678"></div>
+        <div class="field"><label>Población</label><input id="m-pob2" placeholder="Ej.: Madrid"></div>
+        <div class="field"><label>Teléfono</label><input id="m-tel2" placeholder="Ej.: 91 000 00 00"></div>
+        <div class="field"><label>Condición de pago</label>
+          <select id="m-pago2"><option>Contado</option><option selected>30 días</option><option>60 días</option><option>90 días</option></select>
+        </div>
+        <div class="field full"><label>Email</label><input id="m-mail2" placeholder="email@dominio.es"></div>
+      </div>
+      <div class="form-error" id="m-error3">La razón social es obligatoria.</div>`,
+    save(){
+      const nombre = $('#m-razon').value.trim();
+      if(!nombre){ $('#m-error3').style.display = 'block'; return false; }
+      const esCliente = $('#ter-title').textContent === 'Clientes';
+      const tabla = esCliente ? $('#tabla-clientes') : $('#tabla-proveedores');
+      const pref  = esCliente ? 'C' : 'P';
+      const n     = tabla.querySelectorAll('tbody tr').length + 1;
+      const cod   = pref + '-' + String(n).padStart(3,'0');
+      tabla.querySelector('tbody').insertAdjacentHTML('beforeend', `
+        <tr>
+          <td class="code">${cod}</td>
+          <td>${esc(nombre)}</td>
+          <td>${esc($('#m-cif2').value || '—')}</td>
+          <td>${esc($('#m-pob2').value || '—')}</td>
+          <td class="num">0,00</td>
+          <td><span class="chip gray">Sin saldo</span></td>
+        </tr>`);
+      $('#ter-info').textContent = tabla.querySelectorAll('tbody tr').length + ' registros';
+      toast((esCliente ? 'Cliente ' : 'Proveedor ') + cod + ' dado de alta ✔');
+      return true;
+    }
+  }
+};
+
+function parseImp(v){
+  if(!v) return 0;
+  const n = parseFloat(String(v).replace(/\./g,'').replace(',','.'));
+  return isNaN(n) ? 0 : n;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-modal]');
+  if(!btn) return;
+  openModal(btn.dataset.modal);
+});
+function openModal(kind){
+  modalKind = kind;
+  const cfg = MODALS[kind]; if(!cfg) return;
+  $('#modal-title').textContent = cfg.title;
+  $('#modal-body').innerHTML = cfg.html;
+  modalBack.classList.add('open');
+}
+function closeModal(){ modalBack.classList.remove('open'); modalKind = null; }
+modalBack.addEventListener('click', e => { if(e.target === modalBack) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+$('#modal-save').addEventListener('click', () => {
+  const cfg = MODALS[modalKind]; if(!cfg) return;
+  if(cfg.save() !== false) closeModal();
+});
+
+function actualizarTotalesDiario(){
+  let d = 0, h = 0;
+  $$('#tabla-diario tbody tr').forEach(tr => {
+    const c = tr.children;
+    d += parseImp(c[5].textContent);
+    h += parseImp(c[6].textContent);
+  });
+  const fmt = n => n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  $('#diario-debe').textContent  = fmt(d);
+  $('#diario-haber').textContent = fmt(h);
+  $('#diario-info').textContent  = $$('#tabla-diario tbody tr').length + ' apuntes';
+}
+
+/* =========================================================
+   RELOJ
+   ========================================================= */
+function tick(){
+  const now = new Date();
+  $('#clock').textContent = now.toLocaleDateString('es-ES',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+    + ' · ' + now.toLocaleTimeString('es-ES');
+}
+tick(); setInterval(tick, 1000*30);
+</script>
+</body>
+</html>
