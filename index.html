@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cuentas por Cobrar · Prototipo de Flujo de Trabajo</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; }
+
+  /* Scrollbars elegantes */
+  .nice-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .nice-scroll::-webkit-scrollbar-track { background: transparent; }
+  .nice-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,.35); border-radius: 99px; }
+  .nice-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,.6); }
+
+  /* ============================================================
+     1. TEXTO SIEMPRE BLANCO (#ffffff) EN TODAS LAS CAPAS
+     Selectores explícitos: .nodeLabel, g.node text,
+     .edgeLabel tspan/.edgeLabel span, .cluster-label text.
+     Nunca se usa display:none ni visibility para los textos.
+     ============================================================ */
+  #diagram svg text,
+  #diagram svg tspan,
+  #diagram text,
+  #diagram .node text,
+  #diagram g.node text,
+  #diagram .nodeLabel,
+  #diagram .nodeLabel *,
+  #diagram .label,
+  #diagram .label text,
+  #diagram .edgeLabel,
+  #diagram .edgeLabel span,
+  #diagram .edgeLabel tspan,
+  #diagram .edgeLabel text,
+  #diagram .edgeLabel *,
+  #diagram .cluster-label,
+  #diagram .cluster-label text,
+  #diagram .cluster-label *,
+  #diagram span.nodeLabel {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+  }
+
+  /* El fondo lo aporta la caja; el texto va encima en blanco puro */
+  #diagram .nodeLabel,
+  #diagram .nodeLabel > * { background-color: transparent !important; font-weight: 600; }
+  #diagram .edgeLabel { background-color: #1e293b !important; border-radius: 6px; font-weight: 600; }
+  #diagram .cluster-label { background-color: transparent !important; font-weight: 700; letter-spacing: .03em; filter: drop-shadow(0 1px 3px rgba(0,0,0,.55)); }
+
+  /* Estado por defecto: caja oscura sólida #1e293b con borde de carril */
+  #diagram g.node rect,
+  #diagram g.node polygon,
+  #diagram g.node circle,
+  #diagram g.node ellipse,
+  #diagram g.node path { fill: #1e293b !important; }
+
+  /* ============================================================
+     4. INTERACCIÓN / SELECCIÓN
+     Solo cambian fill y stroke de la forma del nodo
+     (rect, polygon, path, circle, ellipse).
+     Las capas de texto quedan intactas: siempre blancas y visibles.
+     ============================================================ */
+  #diagram g.node:hover :is(rect, polygon, path, circle, ellipse) {
+    fill: #0c4a6e !important;
+    stroke: #38bdf8 !important;
+    stroke-width: 3px !important;
+  }
+  #diagram g.node.is-hl :is(rect, polygon, path, circle, ellipse) {
+    fill: #0369a1 !important;
+    stroke: #22d3ee !important;
+    stroke-width: 3px !important;
+  }
+
+  /* Carriles (subgraphs): solo cambia el rectángulo del contenedor */
+  #diagram g.cluster rect {
+    fill: #1e293b !important;
+    stroke-width: 3px !important;
+  }
+  #diagram g.cluster.is-hl rect {
+    fill: #0c4a6e !important;
+    stroke: #22d3ee !important;
+    stroke-width: 3px !important;
+  }
+
+  /* ---- Resalte: brillo neón SOLO en la forma, jamás en el texto ---- */
+  #diagram svg { height: auto; transition: filter .3s ease; }
+  #diagram g.node, #diagram g.cluster { transition: filter .35s ease; }
+  #diagram g.is-hl :is(rect, polygon, path, circle, ellipse) {
+    filter: drop-shadow(0 0 10px rgba(34,211,238,.85));
+  }
+
+  /* Atenuación: solo se apaga la CAJA; el texto nunca baja de opacidad */
+  #diagram g.is-dim :is(rect, polygon, path, circle, ellipse) {
+    fill: #0b1220 !important;
+    stroke: #334155 !important;
+    opacity: .4;
+  }
+
+  /* Conectores: se atenúan solo las líneas, sus etiquetas siguen visibles */
+  #diagram g.edgePath { transition: opacity .35s ease; }
+  #diagram.has-focus g.edgePath { opacity: .15; }
+  #diagram.has-focus g.edgePath.edge-hl { opacity: 1; }
+  #diagram .edgeLabel { transition: none; opacity: 1 !important; }
+
+  .step-btn.active { box-shadow: 0 0 0 2px rgba(56,189,248,.9), 0 10px 30px -10px rgba(56,189,248,.5); }
+  .legend-item.active { box-shadow: 0 0 0 2px rgba(56,189,248,.8); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .fade-up { animation: fadeUp .55s cubic-bezier(.22,1,.36,1) both; }
+</style>
+</head>
+
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 antialiased min-h-screen">
+
+<!-- ══════════════ ENCABEZADO ══════════════ -->
+<header class="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80">
+  <div class="max-w-[1700px] mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 grid place-items-center shadow-lg shadow-sky-500/25">
+        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2m2 4h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm7-5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+        </svg>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight leading-tight truncate">
+          Cuentas por Cobrar
+          <span class="bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-transparent">· Prototipo de Flujo de Trabajo</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">Proceso interactivo de facturación, cobranza y conciliación contable</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <span class="hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 ring-1 ring-inset ring-sky-500/30">Mermaid CDN</span>
+      <span class="hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/30">Tailwind CSS</span>
+      <button id="themeBtn" title="Cambiar tema"
+        class="ml-1 h-10 w-10 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+        <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="w-5 h-5 block dark:hidden text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1700px] mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[370px_1fr] gap-6">
+
+  <!-- ══════════════ GUÍA DE USUARIO (LATERAL) ══════════════ -->
+  <aside class="lg:sticky lg:top-24 lg:max-h-[calc(100vh-7.5rem)] overflow-y-auto nice-scroll fade-up" style="animation-delay:.05s">
+
+    <!-- Cómo usar -->
+    <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 shadow-sm p-5 mb-5">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="h-8 w-8 rounded-lg bg-sky-500/15 text-sky-500 dark:text-sky-400 grid place-items-center">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </span>
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Guía de usuario</h2>
+      </div>
+      <ol class="space-y-2.5 text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
+        <li class="flex gap-2"><span class="font-bold text-sky-500">1.</span> Revisa la <b>leyenda de carriles</b> para entender qué departamento participa en cada etapa.</li>
+        <li class="flex gap-2"><span class="font-bold text-sky-500">2.</span> Haz <b>clic en un paso</b> de la lista "Etapas del proceso": el diagrama resaltará los nodos correspondientes y atenuará el resto.</li>
+        <li class="flex gap-2"><span class="font-bold text-sky-500">3.</span> Usa las <b>rutas rápidas</b> (pago total, pago parcial, con mora) para seguir un flujo completo de principio a fin.</li>
+        <li class="flex gap-2"><span class="font-bold text-sky-500">4.</span> Haz <b>clic en un carril</b> de la leyenda para aislar ese departamento en el diagrama.</li>
+        <li class="flex gap-2"><span class="font-bold text-sky-500">5.</span> Usa los controles de <b>zoom</b> y el botón <b>"Mostrar todo"</b> para explorar o restablecer la vista. Cambia entre modo claro/oscuro con el icono superior.</li>
+      </ol>
+    </section>
+
+    <!-- Leyenda de carriles -->
+    <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 shadow-sm p-5 mb-5">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Leyenda de carriles</h2>
+      <div class="space-y-2.5" id="legend">
+        <button data-keys="comercial / ventas" class="legend-item w-full text-left flex items-start gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+          <span class="mt-1 h-3 w-3 shrink-0 rounded-full bg-blue-500 ring-4 ring-blue-500/20"></span>
+          <span>
+            <span class="block text-[13px] font-bold text-blue-600 dark:text-blue-400">Comercial / Ventas</span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400">Genera el pedido y emite la factura.</span>
+          </span>
+        </button>
+        <button data-keys="cliente" class="legend-item w-full text-left flex items-start gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+          <span class="mt-1 h-3 w-3 shrink-0 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></span>
+          <span>
+            <span class="block text-[13px] font-bold text-emerald-600 dark:text-emerald-400">Cliente</span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400">Recibe, revisa la factura y emite el pago.</span>
+          </span>
+        </button>
+        <button data-keys="tesorería / administración" class="legend-item w-full text-left flex items-start gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+          <span class="mt-1 h-3 w-3 shrink-0 rounded-full bg-amber-500 ring-4 ring-amber-500/20"></span>
+          <span>
+            <span class="block text-[13px] font-bold text-amber-600 dark:text-amber-400">Tesorería / Administración</span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400">Valida el pago bancario y decide si es total o parcial.</span>
+          </span>
+        </button>
+        <button data-keys="contabilidad / cobranzas" class="legend-item w-full text-left flex items-start gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+          <span class="mt-1 h-3 w-3 shrink-0 rounded-full bg-violet-500 ring-4 ring-violet-500/20"></span>
+          <span>
+            <span class="block text-[13px] font-bold text-violet-600 dark:text-violet-400">Contabilidad / Cobranzas</span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400">Concilia, gestiona morosidad, reportes y cierre.</span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Etapas del proceso -->
+    <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 shadow-sm p-5 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Etapas del proceso</h2>
+        <button id="resetBtn" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">Mostrar todo</button>
+      </div>
+      <div class="space-y-2" id="steps">
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 1 · Inicio y venta" data-keys='["inicio","generación de pedido","envío de la factura"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xs font-bold">1</span>
+            <span class="text-[13px] font-semibold">Inicio y Venta</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400">Comercial</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400 pl-8.5">Se crea el pedido y se envía la factura al cliente.</p>
+        </button>
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 2 · Recepción y pago" data-keys='["recepción de la factura","emisión del pago"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-bold">2</span>
+            <span class="text-[13px] font-semibold">Recepción y Pago</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Cliente</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">El cliente revisa condiciones, paga y envía el comprobante.</p>
+        </button>
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 3 · Validación del pago" data-keys='["recepción del comprobante","validación del pago"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold">3</span>
+            <span class="text-[13px] font-semibold">Validación del pago</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">Tesorería</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Tesorería valida el comprobante contra los fondos del banco.</p>
+        </button>
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 4 · Decisión total o parcial" data-keys='["el pago cubre"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold">4</span>
+            <span class="text-[13px] font-semibold">¿Pago total o parcial?</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">Tesorería</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Punto crítico: decide el camino del flujo.</p>
+        </button>
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-violet-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 5 · Pago total (conciliación)" data-keys='["aplicación y conciliación"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-violet-500/15 text-violet-600 dark:text-violet-400 text-xs font-bold">5</span>
+            <span class="text-[13px] font-semibold">Pago total → Conciliación</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400">Contabilidad</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Se aplica el abono completo a la factura en el sistema.</p>
+        </button>
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 6 · Pago parcial (bucle)" data-keys='["registrar pago parcial","notificar al cliente"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-bold">6</span>
+            <span class="text-[13px] font-semibold">Pago parcial → Bucle</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">Tesorería</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Registra el abono parcial, notifica el saldo y espera el siguiente pago.</p>
+        </button>
+
+        <button class="step-btn w-full text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-violet-400/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+          data-label="Paso 7 · Morosidad y cierre" data-keys='["mora","recordatorios","actualización del reporte","archivo definitivo","fin"]'>
+          <div class="flex items-center gap-2.5">
+            <span class="h-6 w-6 shrink-0 grid place-items-center rounded-lg bg-violet-500/15 text-violet-600 dark:text-violet-400 text-xs font-bold">7</span>
+            <span class="text-[13px] font-semibold">Morosidad y Cierre</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400">Contabilidad</span>
+          </div>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Recordatorios, Kardex, archivado como "Pagada y Saldada" y FIN.</p>
+        </button>
+      </div>
+    </section>
+
+    <!-- Rutas rápidas -->
+    <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 shadow-sm p-5">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Rutas rápidas</h2>
+      <div class="flex flex-wrap gap-2" id="routes">
+        <button class="route-btn text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/25 transition"
+          data-label="Ruta: pago total"
+          data-keys='["generación de pedido","envío de la factura","recepción de la factura","emisión del pago","recepción del comprobante","el pago cubre","aplicación y conciliación","hay mora","actualización del reporte","archivo definitivo","fin"]'>
+          ✔ Pago total
+        </button>
+        <button class="route-btn text-xs font-semibold px-3 py-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-inset ring-amber-500/30 hover:bg-amber-500/25 transition"
+          data-label="Ruta: pago parcial (bucle)"
+          data-keys='["recepción del comprobante","el pago cubre","registrar pago parcial","notificar al cliente"]'>
+          ↻ Pago parcial
+        </button>
+        <button class="route-btn text-xs font-semibold px-3 py-2 rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-400 ring-1 ring-inset ring-violet-500/30 hover:bg-violet-500/25 transition"
+          data-label="Ruta: cobranza con mora"
+          data-keys='["aplicación y conciliación","hay mora","recordatorios","actualización del reporte","archivo definitivo","fin"]'>
+          ⚠ Con mora
+        </button>
+      </div>
+      <p class="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+        <b>Bucle:</b> en un pago parcial el flujo regresa a la validación de comprobantes hasta que la factura quede saldada.
+      </p>
+    </section>
+  </aside>
+
+  <!-- ══════════════ DIAGRAMA ══════════════ -->
+  <section class="fade-up min-w-0" style="animation-delay:.12s">
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 shadow-xl shadow-slate-200/50 dark:shadow-black/20 overflow-hidden">
+
+      <!-- Barra de herramientas -->
+      <div class="flex flex-wrap items-center gap-3 justify-between px-4 sm:px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="h-2.5 w-2.5 rounded-full bg-sky-400 animate-pulse"></span>
+          <span id="statusText" class="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 truncate">Mostrando todo el proceso</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="zoomOut" title="Alejar" class="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-lg font-bold">−</button>
+          <span id="zoomLevel" class="text-xs font-semibold w-14 text-center text-slate-500 dark:text-slate-400">100 %</span>
+          <button id="zoomIn" title="Acercar" class="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-lg font-bold">+</button>
+          <button id="zoomReset" title="Restablecer zoom" class="h-9 px-3 ml-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-xs font-semibold">Reset</button>
+        </div>
+      </div>
+
+      <!-- Chips de carriles -->
+      <div class="flex flex-wrap gap-x-4 gap-y-1.5 px-4 sm:px-5 py-2.5 text-[11px] font-medium border-b border-slate-200 dark:border-slate-800">
+        <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-blue-500"></span> Comercial / Ventas</span>
+        <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-emerald-500"></span> Cliente</span>
+        <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-amber-500"></span> Tesorería / Administración</span>
+        <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-violet-500"></span> Contabilidad / Cobranzas</span>
+      </div>
+
+      <!-- Contenedor Mermaid -->
+      <div id="diagram" class="nice-scroll overflow-auto p-4 sm:p-6 bg-slate-50 dark:bg-slate-950/60 min-h-[420px] max-h-[78vh]">
+        <div class="grid place-items-center h-64 text-slate-400 text-sm">
+          <span>Cargando diagrama…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjetas resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Carriles</p>
+        <p class="text-3xl font-extrabold text-sky-500">4</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Departamentos participantes</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Etapas guiadas</p>
+        <p class="text-3xl font-extrabold text-emerald-500">7</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pasos interactivos con resalte</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Puntos de decisión</p>
+        <p class="text-3xl font-extrabold text-amber-500">2</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pago total/parcial · Mora sí/no</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="max-w-[1700px] mx-auto px-6 py-6 text-center text-xs text-slate-400 dark:text-slate-600">
+  Prototipo visual · Proceso de Cuentas por Cobrar · Renderizado con Mermaid + Tailwind CSS (CDN)
+</footer>
+
+<!-- Mermaid (CDN oficial) -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+<script>
+/* ══════════════ CONFIGURACIÓN DEL DIAGRAMA ══════════════ */
+
+const CLASS_DEF = {
+  dark: `
+    classDef comercial fill:#1e293b,stroke:#3b82f6,color:#ffffff,stroke-width:2px
+    classDef cliente fill:#1e293b,stroke:#10b981,color:#ffffff,stroke-width:2px
+    classDef tesoreria fill:#1e293b,stroke:#f59e0b,color:#ffffff,stroke-width:2px
+    classDef contabilidad fill:#1e293b,stroke:#8b5cf6,color:#ffffff,stroke-width:2px
+    classDef cierre fill:#1e293b,stroke:#e2e8f0,color:#ffffff,stroke-width:2px`,
+  light: `
+    classDef comercial fill:#1e293b,stroke:#2563eb,color:#ffffff,stroke-width:2px
+    classDef cliente fill:#1e293b,stroke:#059669,color:#ffffff,stroke-width:2px
+    classDef tesoreria fill:#1e293b,stroke:#d97706,color:#ffffff,stroke-width:2px
+    classDef contabilidad fill:#1e293b,stroke:#7c3aed,color:#ffffff,stroke-width:2px
+    classDef cierre fill:#1e293b,stroke:#0f172a,color:#ffffff,stroke-width:2px`
+};
+
+/* Estilo de los carriles (subgraphs): fondo oscuro + borde y letra destacados */
+const CLUSTER_STYLE = {
+  dark: `
+    style COMERCIAL fill:#0b1220,stroke:#3b82f6,stroke-width:3px,color:#ffffff
+    style CLIENTE fill:#0b1220,stroke:#10b981,stroke-width:3px,color:#ffffff
+    style TESORERIA fill:#0b1220,stroke:#f59e0b,stroke-width:3px,color:#ffffff
+    style CONTABILIDAD fill:#0b1220,stroke:#8b5cf6,stroke-width:3px,color:#ffffff`,
+  light: `
+    style COMERCIAL fill:#1e293b,stroke:#2563eb,stroke-width:3px,color:#ffffff
+    style CLIENTE fill:#1e293b,stroke:#059669,stroke-width:3px,color:#ffffff
+    style TESORERIA fill:#1e293b,stroke:#d97706,stroke-width:3px,color:#ffffff
+    style CONTABILIDAD fill:#1e293b,stroke:#7c3aed,stroke-width:3px,color:#ffffff`
+};
+
+function diagramCode(mode) {
+  return `
+flowchart TD
+    subgraph COMERCIAL["COMERCIAL / VENTAS"]
+        direction TD
+        A(["Inicio"]) --> B["Generación de Pedido<br/>Orden de Venta"]
+        B --> C["Envío de la factura<br/>al cliente"]
+    end
+
+    subgraph CLIENTE["CLIENTE"]
+        direction TD
+        D["Recepción de la factura<br/>Revisión de condiciones y montos"]
+        E["Emisión del pago<br/>Transferencia, depósito o cheque<br/>Envío del comprobante a la empresa"]
+        D --> E
+    end
+
+    subgraph TESORERIA["TESORERÍA / ADMINISTRACIÓN"]
+        direction TD
+        F["Recepción del comprobante<br/>Validación del pago contra fondos del banco"]
+        G{"¿El pago cubre el monto<br/>total de la factura?"}
+        H["Registrar pago parcial<br/>en el sistema"]
+        I["Generar saldo pendiente<br/>y notificar al cliente"]
+        F --> G
+        G -- "NO · pago parcial" --> H --> I
+    end
+
+    subgraph CONTABILIDAD["CONTABILIDAD / COBRANZAS"]
+        direction TD
+        J["Aplicación y conciliación del pago<br/>Abono completo a la factura en el sistema"]
+        K{"¿La factura tiene<br/>mora vencida?"}
+        L["Envío de recordatorios<br/>y avisos de mora"]
+        M["Actualización del reporte<br/>Kardex y antigüedad de saldos"]
+        N["Archivo definitivo<br/>Factura: Pagada y Saldada"]
+        O(["FIN"])
+        J --> K
+        K -- "SÍ" --> L --> M
+        K -- "NO" --> M
+        M --> N --> O
+    end
+
+    C --> D
+    E --> F
+    G -- "SÍ · pago total" --> J
+    I --> F
+
+    ${CLASS_DEF[mode]}
+    ${CLUSTER_STYLE[mode]}
+    class A,B,C comercial
+    class D,E cliente
+    class F,G,H,I tesoreria
+    class J,K,L,M,N contabilidad
+    class O cierre
+`;
+}
+
+const THEME = {
+  dark: {
+    background: '#020617', primaryColor: '#1e293b', primaryTextColor: '#ffffff',
+    primaryBorderColor: '#3b82f6', lineColor: '#94a3b8', secondaryColor: '#1e293b',
+    tertiaryColor: '#1e293b', clusterBkg: '#0b1220', clusterBorder: '#3b82f6',
+    edgeLabelBackground: '#1e293b', fontSize: '14px'
+  },
+  light: {
+    background: '#f8fafc', primaryColor: '#1e293b', primaryTextColor: '#ffffff',
+    primaryBorderColor: '#2563eb', lineColor: '#94a3b8', secondaryColor: '#1e293b',
+    tertiaryColor: '#1e293b', clusterBkg: '#1e293b', clusterBorder: '#2563eb',
+    edgeLabelBackground: '#1e293b', fontSize: '14px'
+  }
+};
+
+/* ══════════════ ESTADO ══════════════ */
+const holder = document.getElementById('diagram');
+const statusText = document.getElementById('statusText');
+let currentKeys = [];
+let currentLabel = '';
+let zoom = 1;
+
+const isDark = () => document.documentElement.classList.contains('dark');
+const normalize = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function matches(text, key) {
+  const k = escRe(normalize(key).trim());
+  if (!k) return false;
+  return new RegExp('\\b' + k + '\\b').test(normalize(text));
+}
+
+/* ══════════════ RENDER ══════════════ */
+async function renderDiagram() {
+  if (typeof mermaid === 'undefined') {
+    holder.innerHTML = '<p class="text-rose-500 font-medium">No se pudo cargar Mermaid desde el CDN. Verifica tu conexión.</p>';
+    return;
+  }
+  const mode = isDark() ? 'dark' : 'light';
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'loose',
+    theme: 'dark',
+    themeVariables: { textColor: '#ffffff', mainBkg: '#1e293b', ...THEME[mode] },
+    flowchart: { curve: 'basis', htmlLabels: true, nodeSpacing: 45, rankSpacing: 55, padding: 12 }
+  });
+  try {
+    const id = 'cbcFlow' + Date.now();
+    const { svg } = await mermaid.render(id, diagramCode(mode));
+    holder.innerHTML = svg;
+    const svgEl = holder.querySelector('svg');
+    if (svgEl) { svgEl.style.maxWidth = 'none'; svgEl.style.width = '100%'; }
+    applyZoom();
+    applyHighlight(currentKeys, currentLabel);
+  } catch (e) {
+    holder.innerHTML = '<p class="text-rose-500 font-medium">Error al renderizar el diagrama: ' + (e.message || e) + '</p>';
+  }
+}
+
+/* ══════════════ RESALTE ══════════════ */
+function applyHighlight(keys, label) {
+  const svg = holder.querySelector('svg');
+  if (!svg) return;
+  const nodes = svg.querySelectorAll('g.node, g.cluster');
+
+  nodes.forEach(g => g.classList.remove('is-dim', 'is-hl'));
+  svg.querySelectorAll('.edgePath, .edgeLabel').forEach(g => g.classList.remove('edge-hl'));
+  holder.classList.remove('has-focus');
+
+  if (!keys || !keys.length) {
+    statusText.textContent = 'Mostrando todo el proceso';
+    return;
+  }
+
+  holder.classList.add('has-focus');
+  const clustersHl = [];
+
+  nodes.forEach(g => {
+    const hit = keys.some(k => matches(g.textContent, k));
+    if (hit) {
+      g.classList.add('is-hl');
+      g.classList.remove('is-dim');
+      if (g.classList.contains('cluster')) clustersHl.push(g);
+    } else {
+      g.classList.add('is-dim');
+    }
+  });
+
+  // Si un carril completo está resaltado, no atenuar sus nodos internos
+  clustersHl.forEach(c => c.querySelectorAll('g.node').forEach(n => { n.classList.remove('is-dim'); n.classList.add('is-hl'); }));
+
+  // Resaltar aristas conectadas a nodos resaltados
+  const hlIds = new Set();
+  svg.querySelectorAll('g.node.is-hl').forEach(n => {
+    const id = n.id || '';
+    const m = id.match(/flowchart-([A-Za-z0-9_]+)-/);
+    if (m) hlIds.add(m[1]);
+  });
+  svg.querySelectorAll('.edgePath').forEach(ep => {
+    const parent = ep.closest('g.edge') || ep.parentElement;
+    const html = (parent ? parent.textContent : '') + ' ' + ep.getAttribute('id');
+    const idHit = [...hlIds].some(id => (ep.getAttribute('id') || '').includes('-' + id + '-'));
+    const labelHit = keys.some(k => matches(html, k));
+    if (idHit || labelHit) ep.classList.add('edge-hl');
+  });
+
+  statusText.textContent = 'Resaltando: ' + (label || 'selección') + ' · clic en "Mostrar todo" para restablecer';
+}
+
+function setHighlight(keys, label) {
+  currentKeys = keys || [];
+  currentLabel = label || '';
+  applyHighlight(currentKeys, currentLabel);
+}
+
+/* ══════════════ ZOOM ══════════════ */
+function applyZoom() {
+  const svg = holder.querySelector('svg');
+  if (!svg) return;
+  svg.style.zoom = zoom;
+  document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + ' %';
+}
+
+/* ══════════════ EVENTOS ══════════════ */
+function clearActive() {
+  document.querySelectorAll('.step-btn.active, .legend-item.active, .route-btn.active')
+    .forEach(el => el.classList.remove('active'));
+}
+
+// Pasos
+document.querySelectorAll('.step-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const already = btn.classList.contains('active');
+    clearActive();
+    if (already) { setHighlight([], ''); return; }
+    btn.classList.add('active');
+    setHighlight(JSON.parse(btn.dataset.keys), btn.dataset.label);
+  });
+});
+
+// Leyenda de carriles
+document.querySelectorAll('.legend-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const already = btn.classList.contains('active');
+    clearActive();
+    if (already) { setHighlight([], ''); return; }
+    btn.classList.add('active');
+    setHighlight([btn.dataset.keys], 'Carril ' + btn.dataset.keys);
+  });
+});
+
+// Rutas rápidas
+document.querySelectorAll('.route-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const already = btn.classList.contains('active');
+    clearActive();
+    if (already) { setHighlight([], ''); return; }
+    btn.classList.add('active');
+    setHighlight(JSON.parse(btn.dataset.keys), btn.dataset.label);
+  });
+});
+
+// Reset
+document.getElementById('resetBtn').addEventListener('click', () => { clearActive(); setHighlight([], ''); });
+
+// Zoom
+document.getElementById('zoomIn').addEventListener('click', () => { zoom = Math.min(2, zoom + 0.15); applyZoom(); });
+document.getElementById('zoomOut').addEventListener('click', () => { zoom = Math.max(0.5, zoom - 0.15); applyZoom(); });
+document.getElementById('zoomReset').addEventListener('click', () => { zoom = 1; applyZoom(); });
+
+// Tema
+document.getElementById('themeBtn').addEventListener('click', async () => {
+  document.documentElement.classList.toggle('dark');
+  await renderDiagram();
+});
+
+/* ══════════════ INICIO ══════════════ */
+renderDiagram();
+</script>
+</body>
+</html>
